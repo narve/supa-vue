@@ -6,5 +6,5 @@ export default {
 </script>
 
 <template>
-  <p>Some about info here pls</p>
+  <p>This is indeed a cool site. We do miss some "About"-info, though. </p>
 </template>

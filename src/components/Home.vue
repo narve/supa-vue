@@ -7,5 +7,7 @@ export default {
 </script>
 
 <template>
-  welcome etc
+  <div>
+    This is the home page of this wonderful app. 
+  </div>
 </template>
