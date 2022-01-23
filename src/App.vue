@@ -21,22 +21,30 @@ const addRoute = () => {
 </script>
 
 <template>
-  <img alt="Vue logo" src="./assets/logo.png"/>
+  <!--  <img alt="Vue logo" src="./assets/logo.png"/>-->
 
-  <!--  <HelloWorld msg="Hello World 6"/>-->
   <nav>
     <RouterLink v-for="route of routeList" :to="route.path">
-      {{ route.name || route.path }} A
+      {{ route.name || route.path }}
     </RouterLink>
   </nav>
 
   <button @click="addRoute">HIT ME</button>
 
-  <RouterView></RouterView>
+  <section>
+    <h1>{{$route.name}}</h1>
+    <RouterView></RouterView>
+  </section>
 
 </template>
 
-<style>
+<style scoped>
+
+a {
+  padding-right: 0.5em;
+  outline: greenyellow 1px solid;
+}
+
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
