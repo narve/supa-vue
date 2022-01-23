@@ -4,6 +4,7 @@
 import HelloWorld from './components/HelloWorld.vue'
 import {useRouter} from "vue-router";
 import {ref} from "vue";
+import {store} from "./supa/store";
 
 const router = useRouter();
 
@@ -18,6 +19,7 @@ const addRoute = () => {
   routeList.value = router.getRoutes();
 }
 
+
 </script>
 
 <template>
@@ -29,13 +31,16 @@ const addRoute = () => {
     </RouterLink>
   </nav>
 
-  <button @click="addRoute">HIT ME</button>
+<!--  <button @click="addRoute">HIT ME</button>-->
 
+  <p>Login status: {{store.user.email}}</p>
+  
   <section>
     <h1>{{$route.name}}</h1>
     <RouterView></RouterView>
   </section>
 
+  
 </template>
 
 <style scoped>

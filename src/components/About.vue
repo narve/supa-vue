@@ -1,6 +1,6 @@
 <script lang="ts">
 export default {
-  name: "about",
+  name: "About",
   path: "/about"
 }
 </script>

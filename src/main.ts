@@ -1,15 +1,12 @@
 import {createApp} from 'vue'
 import App from './App.vue'
 import {createRouter, createWebHistory, RouterOptions} from 'vue-router';
-import HelloWorld from './components/HelloWorld.vue';
-import AboutComponent from './components/AboutComponent.vue';
-import HomeComponent from './components/HomeComponent.vue';
+import AboutComponent from './components/About.vue';
+import HomeComponent from './components/Home.vue';
 import SupaConfig from './components/SupaConfig.vue';
-import AuthComponent from './components/AuthComponent.vue';
+import AuthComponent from './components/Auth.vue';
 
-console.log("Name: ", AboutComponent.name);
-console.log("AuthComponent name: ", AuthComponent.name);
-console.log("AuthComponent: ", AuthComponent);
+import "./assets/main.css"
 
 interface SmartComponent {
     name: string;
@@ -31,12 +28,12 @@ const ToRoute = (sc: SmartComponent) => ({
 
 const myRoutes: RouterOptions = {
     routes: [
-        ...components.map(sc => ToRoute(sc)), 
         {
             path: "/",
             name: HomeComponent.name,
             component: HomeComponent,
         },
+        ...components.map(sc => ToRoute(sc)), 
     ], history: createWebHistory()
 };
 
