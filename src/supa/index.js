@@ -1,9 +1,8 @@
 // noinspection SpellCheckingInspection
 
 import {createClient} from '@supabase/supabase-js';
+import {getOpenApi} from "./supa-openapi";
 
-
-const log = (...args) => console.debug("[oapi]", ...args);
 
 export const getActiveConfig = () => ({
     name: "narve",
@@ -18,4 +17,28 @@ const getClient = () => {
 
 export const supabase = getClient()
 
+export const fetchDataAsync = async (client, tableName) => {
+    console.log('table: ', tableName);
 
+    const openApi = await getOpenApi(supabase);
+// noinspection JSUnresolvedVariable
+    const table = openApi.definitions[tableName];
+
+// noinspection JSUnresolvedVariable
+    const fksToLoad = Object.values(table.properties)
+        .filter(prop => prop.isFk);
+
+    let select = "*";
+    for (const fk of fksToLoad) {
+        select += `, ${fk.fk.table} ( id, ${fk.fk.select} )`;
+    }
+    console.log('using select: ', select);
+
+    const {data, error} = await getClient().from(tableName).select(select);
+    
+
+    console.log('got data: ', {data, error});
+
+    if (error) throw error;
+    else return {meta: openApi.definitions[tableName], data};
+}

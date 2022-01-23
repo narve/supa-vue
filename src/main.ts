@@ -5,23 +5,24 @@ import AboutComponent from './components/About.vue';
 import HomeComponent from './components/Home.vue';
 import SupaConfig from './components/SupaConfig.vue';
 import AuthComponent from './components/Auth.vue';
+import DataComponent from './components/DataComponent.vue';
 
 import "./assets/main.css"
 
 interface SmartComponent {
     name: string;
     path: string;
-    aliases?: string;
+    alias?: string;
 }
 
 const components: SmartComponent[] = [
-    HomeComponent, AboutComponent, SupaConfig, AuthComponent,
+    AboutComponent, SupaConfig, AuthComponent,
 ];
 
 const ToRoute = (sc: SmartComponent) => ({
     name: sc.name,
     path: sc.path,
-    aliases: sc.aliases,
+    // alias: sc.alias,
     component: sc,
 });
 
@@ -30,8 +31,14 @@ const myRoutes: RouterOptions = {
     routes: [
         {
             path: "/",
+            // alias: "/home",
             name: HomeComponent.name,
             component: HomeComponent,
+        },
+        {
+            path: "/show/:name",
+            name: 'show-data', 
+            component: DataComponent,
         },
         ...components.map(sc => ToRoute(sc)), 
     ], history: createWebHistory()

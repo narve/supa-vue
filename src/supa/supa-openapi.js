@@ -1,3 +1,4 @@
+const log = (...args) => console.debug("[oapi]", ...args);
 
 export const getOpenApi = async (client) => {
     const {data, error} = await client.from("").select('*');
@@ -23,7 +24,7 @@ export const processOpenApi = ({definitions}) => {
 
         // Find the title property of the table:
         table.titleProp = titleProps.find(p => !!table.properties[p]);
-        log('  title prop for ', tableName, table.titleProp);
+        // log('  title prop for ', tableName, table.titleProp);
     }
 
 

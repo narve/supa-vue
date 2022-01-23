@@ -2,7 +2,7 @@
 export default {
   name: "Home",
   path: "/home",
-  aliases: "/",
+  alias: "/",
 }
 </script>
 
