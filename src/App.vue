@@ -13,14 +13,14 @@ const router = useRouter();
 
 const routeList = ref(router.getRoutes());
 
-const addRoute = () => {
-  router.addRoute({
-    name: 'new-route',
-    path: "/new",
-    component: HelloWorld,
-  });
-  routeList.value = router.getRoutes();
-}
+// const addRoute = () => {
+//   router.addRoute({
+//     name: 'new-route',
+//     path: "/new",
+//     component: HelloWorld,
+//   });
+//   routeList.value = router.getRoutes();
+// }
 
 store.user = supabase.auth.user()
 console.log('Setup: ', {user: store.user});
@@ -32,7 +32,7 @@ const dataList = ref([]);
 
 getOpenApi(supabase)
     .then((data: { definitions: {}; }) => {
-      const toRemove = ['ceremony_statistics', 'countries', 'participant', 'participant_statistics', 'profiles'];
+      const toRemove = ['ceremony_statistics', 'countries', 'participant', 'participant_statistics', 'profiles', 'location'];
       const names = Object.keys(data.definitions)
           .filter(n => toRemove.indexOf(n) < 0);
       
@@ -64,7 +64,8 @@ getOpenApi(supabase)
 
   <!--  <button @click="addRoute">HIT ME</button>-->
 
-  <p>Login status: {{ store.user.email }}</p>
+  <p v-if="store.user">Login status: {{ store.user.email }}</p>
+  <p v-if="!store.user">NB: Not logged in</p>
 
   <section>
     <h1>{{ $route.name }}</h1>

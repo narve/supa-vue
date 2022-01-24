@@ -2,26 +2,32 @@
 
 import {fetchDataAsync, supabase} from "../supa";
 import {useRouter} from "vue-router";
-import {Ref, ref, UnwrapRef} from "vue";
+import {Ref, ref, UnwrapRef, watch} from "vue";
 
 const router = useRouter();
 
-const tableName = router.currentRoute.value.params.name;
-console.log('fetching: ', tableName);
 
 const data = ref([]);
 const columns = ref<string[]>([]);
 
-fetchDataAsync(supabase, tableName)
-    .then((x: any) => {
-      console.log('meta: ', x.meta);
-      data.value = x.data;
-      columns.value = Object.keys(x.meta.properties);
-    });
+const applyTable = () => {
+  const tableName = router.currentRoute.value.params.name;
+  console.log('fetching: ', tableName);
+  fetchDataAsync(supabase, tableName)
+      .then((x: any) => {
+        console.log('meta: ', x.meta);
+        data.value = x.data;
+        columns.value = Object.keys(x.meta.properties);
+      });
+}
+applyTable();
 
-// function beforeRouteUpdate(to, from) {
-//   console.log('wtf');
-// }
+watch(
+    () => router.currentRoute.value.params,
+    () => applyTable());
+
+
+const cellToString = (cell: any) => !cell ? '' : (cell.handle || cell.name || cell);
 
 </script>
 <template>
@@ -38,7 +44,10 @@ fetchDataAsync(supabase, tableName)
     <tr v-for="row of data">
       <!--      <td>{{row}}</td>-->
       <td v-for="cell in row">
-        {{ cell.id ? cell.handle : cell }}
+        {{ cellToString(cell) }}
+<!--        <span>-->
+<!--          {{JSON.stringify(cell)}}-->
+<!--        </span>-->
       </td>
     </tr>
     </tbody>
