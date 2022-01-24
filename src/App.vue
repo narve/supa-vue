@@ -64,7 +64,7 @@ getOpenApi(supabase)
 
   <!--  <button @click="addRoute">HIT ME</button>-->
 
-  <p v-if="store.user">Login status: {{ store.user.email }}</p>
+  <p v-if="store.user">Login status: {{ store.user.email }} - {{store.user.role}}</p>
   <p v-if="!store.user">NB: Not logged in</p>
 
   <section>
