@@ -4,68 +4,63 @@
 import HelloWorld from './components/HelloWorld.vue'
 import DataComponent from "./components/DataComponent.vue";
 import {useRouter} from "vue-router";
-import {ref} from "vue";
+import { onMounted, Ref, ref, watchEffect } from "vue";
 import {supabase} from "./supa";
 import {store} from "./supa/store";
 import {getOpenApi} from "./supa/supa-openapi";
+import { asyncComputed } from './utils/asyncComputed';
 
 const router = useRouter();
-
 const routeList = ref(router.getRoutes());
-
-// const addRoute = () => {
-//   router.addRoute({
-//     name: 'new-route',
-//     path: "/new",
-//     component: HelloWorld,
-//   });
-//   routeList.value = router.getRoutes();
-// }
 
 store.user = supabase.auth.user()
 console.log('Setup: ', {user: store.user});
-supabase.auth.onAuthStateChange((_, session) => {
-  store.user = session.user
+
+interface DataList {
+	name: string;
+	path: string;
+	component: any;
+}
+
+const dataList = asyncComputed<DataList[]>(
+	[],
+	() => {
+		return getOpenApi(supabase)
+			.then(data => {
+				const toRemove = ['ceremony_statistics', 'countries', 'participant', 'participant_statistics', 'profiles', 'location', 'item'];
+				return Object.keys(data.definitions)
+					.filter(n => !toRemove.includes(n))
+					.map(name => ({ name, path: `/show/${name}`, component: DataComponent }))
+			});
+	}
+)
+
+watchEffect(() => {
+	if (dataList.error) {
+		alert('Oopsie! Unable to load dataList: ' + dataList.error.message);
+	}
 })
-
-const dataList = ref([]);
-
-getOpenApi(supabase)
-    .then((data: { definitions: {}; }) => {
-      const toRemove = ['ceremony_statistics', 'countries', 'participant', 'participant_statistics', 'profiles', 'location', 'item'];
-      const names = Object.keys(data.definitions)
-          .filter(n => toRemove.indexOf(n) < 0);
-
-      for (const name of names) {
-        // router.addRoute( {name, path: `/show/{name}`, component: DataComponent});
-        dataList.value.push({name, path: `/show/${name}`, component: DataComponent});
-        // dataList.value.push('hei');
-      }
-
-
-      console.log('got oapi: ', names);
-    });
 </script>
 
 <template>
-  <!--  <img alt="Vue logo" src="./assets/logo.png"/>-->
-
   <nav>
-    <RouterLink v-for='route of routeList.filter(s=>s.path.indexOf(":") < 0)' :to="route.path">
+    <RouterLink v-for='route of routeList.filter(s=>s.path.indexOf(":") < 0)' :to="route.path" :key="route.path">
       {{ route.name || route.path }}
     </RouterLink>
   </nav>
 
-  <nav>
-    <RouterLink v-for='route of dataList' :to="route.path">
+  <nav v-if="dataList.value.length">
+    <RouterLink v-for="route of dataList.value" :to="route.path">
       {{ route.title || route.name || route.path }}
     </RouterLink>
   </nav>
 
   <!--  <button @click="addRoute">HIT ME</button>-->
 
-  <p v-if="store.user">Login status: {{ store.user.email }} - {{ store.user.role }}</p>
-  <p v-if="!store.user">NB: Not logged in</p>
+  <p>
+		<template v-if="store.user">Login status: {{ store.user.email }} - {{ store.user.role }}</template>
+		<template v-else>NB: Not logged in</template>
+	</p>
 
   <section>
     <h1>{{ $route.name }}</h1>

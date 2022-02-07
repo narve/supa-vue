@@ -1,29 +1,23 @@
 <script lang="ts">
-import {getActiveConfig} from "../supa";
-
-const cfg = getActiveConfig();
-
-
 export default {
-  name: "Supabase Config",
-  path: "/supa",
-  setup() {
-    return {
-      cfg
-    }
-  },
+	name: 'Supabase Config',
+	path: '/supa'
 }
 </script>
 
-<template>
-  <p>SupaConfig here pls</p>
+<script setup lang="ts">
+import { activeSupabaseConfig } from "../supa";
+</script>
 
-  <div>
-    Current supa-config:
-    <pre>
-{{ cfg }}
+<template>
+	<p>SupaConfig here pls</p>
+
+	<div>
+		Current supa-config:
+		<pre>
+{{ activeSupabaseConfig }}
     </pre>
-  </div>
+	</div>
 
 
 </template>
