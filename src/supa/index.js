@@ -30,8 +30,12 @@ export const fetchDataAsync = async (client, tableName) => {
 
     let select = "*";
     for (const fk of fksToLoad) {
-        select += `, ${fk.fk.table} ( id, ${fk.fk.select} )`;
+        // select += `, ${fk.fk.table}!${fk.name} ( id, ${fk.fk.select} )`;
+        // select += `, ${fk.fk.table}!${fk.fk.fk_name} ( id, ${fk.fk.select} )`;
+        select += `, ${fk.fk.fk_name} ( id, ${fk.fk.select} )`;
     }
+    // select += ', school!school_id (id, name)';
+    // select += ', enrollment_school_id_fkey (id, name)';
     console.log('using select: ', select);
 
     const {data, error} = await getClient().from(tableName).select(select);

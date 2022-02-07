@@ -12,7 +12,7 @@ export const getOpenApi = async (client) => {
 }
 
 
-export const titleProps = ['title', 'handle', 'name', 'id'];
+export const titleProps = ['title', 'handle', 'name', 'email', 'id'];
 
 // @ts-ignore
 export const processOpenApi = ({definitions}) => {
@@ -24,7 +24,7 @@ export const processOpenApi = ({definitions}) => {
 
         // Find the title property of the table:
         table.titleProp = titleProps.find(p => !!table.properties[p]);
-        // log('  title prop for ', tableName, table.titleProp);
+        log('  title prop for ', tableName, table.titleProp, ' available: ', Object.keys(table.properties));
     }
 
 
@@ -44,6 +44,7 @@ export const processOpenApi = ({definitions}) => {
                 const [, table, column] = [...prop.description.matchAll(/.*<fk table='(.*)' column='(.*)'.*/g)]
                     [0];
                 prop.fk = {table, column, select: definitions[table].titleProp};
+                prop.fk.fk_name = [tableName, propName, "fkey"].join("_");
             }
         }
     }

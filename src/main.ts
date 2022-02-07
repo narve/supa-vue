@@ -6,8 +6,10 @@ import HomeComponent from './components/Home.vue';
 import SupaConfig from './components/SupaConfig.vue';
 import AuthComponent from './components/Auth.vue';
 import DataComponent from './components/DataComponent.vue';
+import PasswordRecovery from './components/PasswordRecovery.vue';
+import OrderLine from "./components/OrderLine.vue";
 
-import "./assets/main.css"
+// import "./assets/main.css"
 
 interface SmartComponent {
     name: string;
@@ -16,7 +18,7 @@ interface SmartComponent {
 }
 
 const components: SmartComponent[] = [
-    AboutComponent, SupaConfig, AuthComponent,
+    AboutComponent, SupaConfig, AuthComponent, OrderLine
 ];
 
 const ToRoute = (sc: SmartComponent) => ({
@@ -37,8 +39,13 @@ const myRoutes: RouterOptions = {
         },
         {
             path: "/show/:name",
-            name: 'show-data', 
+            // name: 'show-data', 
             component: DataComponent,
+        },
+        {
+            path: "/password-recovery",
+            name: "password-recovery", 
+            component: PasswordRecovery,
         },
         ...components.map(sc => ToRoute(sc)), 
     ], history: createWebHistory()

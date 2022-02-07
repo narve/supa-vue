@@ -35,18 +35,46 @@ export default {
       }
     }
 
+    const handleFacebookLogin = async () => {
+      try {
+        loading.value = true
+
+        const {user, session, error} = await supabase.auth.signIn({
+          provider: 'facebook',
+        });
+
+        console.log('Response from sign-in: ', {user, session, error});
+        if (error) throw error
+        alert("Fjesboka sier hei!")
+      } catch (error: any) {
+        alert(error.error_description || error.message)
+      } finally {
+        loading.value = false
+      }
+    }
+
     return {
       loading,
       email,
       password,
       handleMagicLogin,
       handlePasswordLogin,
+      handleFacebookLogin
     }
   },
 }
 </script>
 
 <template>
+
+  <form @submit.prevent="handleFacebookLogin">
+
+    <label>Logg inn via fjesboken: </label>
+
+    <input type="submit" value="Facebook !">
+
+  </form>
+
 
   <form class="row flex flex-center" @submit.prevent="handlePasswordLogin">
     <div class="col-6 form-widget">
