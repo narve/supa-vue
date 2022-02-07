@@ -32,13 +32,13 @@ const dataList = ref([]);
 
 getOpenApi(supabase)
     .then((data: { definitions: {}; }) => {
-      const toRemove = ['ceremony_statistics', 'countries', 'participant', 'participant_statistics', 'profiles', 'location'];
+      const toRemove = ['ceremony_statistics', 'countries', 'participant', 'participant_statistics', 'profiles', 'location', 'item'];
       const names = Object.keys(data.definitions)
           .filter(n => toRemove.indexOf(n) < 0);
-      
-      for(const name of names) {
+
+      for (const name of names) {
         // router.addRoute( {name, path: `/show/{name}`, component: DataComponent});
-        dataList.value.push( {name, path: `/show/${name}`, component: DataComponent});
+        dataList.value.push({name, path: `/show/${name}`, component: DataComponent});
         // dataList.value.push('hei');
       }
 
@@ -51,20 +51,20 @@ getOpenApi(supabase)
   <!--  <img alt="Vue logo" src="./assets/logo.png"/>-->
 
   <nav>
-    <RouterLink v-for="route of routeList" :to="route.path">
+    <RouterLink v-for='route of routeList.filter(s=>s.path.indexOf(":") < 0)' :to="route.path">
       {{ route.name || route.path }}
     </RouterLink>
   </nav>
 
   <nav>
-    <RouterLink v-for="route of dataList" :to="route.path">
-      {{ route.name || route.path }}
+    <RouterLink v-for='route of dataList' :to="route.path">
+      {{ route.title || route.name || route.path }}
     </RouterLink>
   </nav>
 
   <!--  <button @click="addRoute">HIT ME</button>-->
 
-  <p v-if="store.user">Login status: {{ store.user.email }} - {{store.user.role}}</p>
+  <p v-if="store.user">Login status: {{ store.user.email }} - {{ store.user.role }}</p>
   <p v-if="!store.user">NB: Not logged in</p>
 
   <section>
