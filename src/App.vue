@@ -4,11 +4,11 @@
 import HelloWorld from './components/HelloWorld.vue'
 import DataComponent from "./components/DataComponent.vue";
 import {useRouter} from "vue-router";
-import { onMounted, Ref, ref, watchEffect } from "vue";
+import { computed, onMounted, Ref, ref, watchEffect } from "vue";
 import {supabase} from "./supa";
 import {store} from "./supa/store";
 import {getOpenApi} from "./supa/supa-openapi";
-import { asyncComputed } from './utils/asyncComputed';
+import { promisedReactive } from './utils/promisedReactive';
 
 const router = useRouter();
 const routeList = ref(router.getRoutes());
@@ -22,7 +22,7 @@ interface DataList {
 	component: any;
 }
 
-const dataList = asyncComputed<DataList[]>(
+const dataList = promisedReactive<DataList[]>(
 	[],
 	() => {
 		return getOpenApi(supabase)
@@ -35,6 +35,8 @@ const dataList = asyncComputed<DataList[]>(
 	}
 )
 
+const filteredRouteList = computed(() => routeList.value.filter(s=>s.path.indexOf(":") < 0));
+
 watchEffect(() => {
 	if (dataList.error) {
 		alert('Oopsie! Unable to load dataList: ' + dataList.error.message);
@@ -44,12 +46,15 @@ watchEffect(() => {
 
 <template>
   <nav>
-    <RouterLink v-for='route of routeList.filter(s=>s.path.indexOf(":") < 0)' :to="route.path" :key="route.path">
+    <RouterLink v-for='route of filteredRouteList' :to="route.path" :key="route.path">
       {{ route.name || route.path }}
     </RouterLink>
   </nav>
 
-  <nav v-if="dataList.value.length">
+  <nav
+		v-if="dataList.value.length"
+		style="display: flex; flex-direction: row; flex-wrap: wrap;"
+	>
     <RouterLink v-for="route of dataList.value" :to="route.path">
       {{ route.title || route.name || route.path }}
     </RouterLink>

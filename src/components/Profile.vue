@@ -1,16 +1,23 @@
 <script setup lang="ts">
 import { supabase } from "../supa"
 import { store } from "../supa/store"
-import { onMounted, ref } from "vue"
+import { onMounted, ref, watchEffect } from "vue"
+import { promisedReactive } from '../utils/promisedReactive';
 
 const loading = ref(true)
 const username = ref("")
 const website = ref("")
 const avatar_url = ref("")
 
-async function getProfile() {
-	try {
-		loading.value = true
+interface Profile {
+	username: string;
+	website: string;
+	avatar_url: string;
+}
+
+const profile = promisedReactive<Profile>(
+	{ username: '', website: '', avatar_url: ''},
+	async () => {
 		store.user = supabase.auth.user()
 
 		let { data, error, status } = await supabase
@@ -21,17 +28,16 @@ async function getProfile() {
 
 		if (error && status !== 406) throw error
 
-		if (data) {
-			username.value = data.username
-			website.value = data.website
-			avatar_url.value = data.avatar_url
-		}
-	} catch (error: any) {
-		alert(error.message)
-	} finally {
-		loading.value = false
+		return data;
 	}
-}
+)
+
+watchEffect(() => {
+	loading.value = profile.loading;
+	if (profile.error) {
+		alert(profile.error.message);
+	}
+})
 
 async function updateProfile() {
 	try {
@@ -39,10 +45,10 @@ async function updateProfile() {
 		store.user = supabase.auth.user()
 
 		const updates = {
-			id: store.user.id,
-			username: username.value,
-			website: website.value,
-			avatar_url: avatar_url.value,
+			id: store.user?.id,
+			username: profile.value.username,
+			website: profile.value.website,
+			avatar_url: profile.value.avatar_url,
 			updated_at: new Date(),
 		}
 
@@ -69,10 +75,6 @@ async function signOut() {
 		loading.value = false
 	}
 }
-
-onMounted(() => {
-	getProfile()
-})
 </script>
 
 <template>
@@ -88,11 +90,11 @@ onMounted(() => {
 		</div>
 		<div>
 			<label for="username">Name</label>
-			<input id="username" type="text" v-model="username" />
+			<input id="username" type="text" v-model="profile.value.username" />
 		</div>
 		<div>
 			<label for="website">Website</label>
-			<input id="website" type="website" v-model="website" />
+			<input id="website" type="website" v-model="profile.value.website" />
 		</div>
 
 		<div>
