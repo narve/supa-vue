@@ -30,6 +30,8 @@ const refresh = async () => {
     console.log(data);
     if (data) {
       items.value = data;
+      const sum = (items.value || []).map(s=>s.number_of_items).reduce((a,b) => a+b, 0);
+      console.log( "sum: ", sum);
     }
   }
 }
@@ -139,7 +141,7 @@ label span {
       <th colspan="2">
         Totalt:
       </th>
-      <th>{items.value.map(s=>number_of_items).reduce((a,b) => a+b, 0)}</th>
+      <th>{{(items.value || []).map(s=>s.number_of_items).reduce((a,b) => a+b, 0)}}</th>
       <th></th>
       <th>213123</th>
     </tr>
