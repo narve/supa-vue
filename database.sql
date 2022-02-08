@@ -310,25 +310,26 @@ drop table if exists orderline;
 create table orderline
 (
     id          uuid primary key default (gen_random_uuid()),
-    owner_id    uuid    not null unique references auth.users (id),
+    owner_id    uuid    not null references auth.users (id),
     name        text    not null,
     address     text    not null,
-    order_count integer not null,
+    number_of_items integer not null,
     notes       text
 );
 alter table orderline
     enable row level security;
 
 drop policy if exists orderline_policy_select on orderline;
-create policy orderline_policy_all_select
+create policy orderline_policy_select
     on orderline
     for select
-    using (auth.uid() = owner_id or is_admin());
+--     using (auth.uid() = owner_id or is_admin());
+    using (auth.uid() = owner_id );
 
 drop policy if exists orderline_policy_all on orderline;
 create policy orderline_policy_all
     on orderline
     for all
-    using (auth.uid() = owner_id or is_admin())
+    using (auth.uid() = owner_id )
     with check (auth.uid() = owner_id or is_admin());
 
