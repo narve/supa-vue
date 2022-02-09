@@ -38,16 +38,12 @@ export default {
     const handleFacebookLogin = async () => {
       try {
         loading.value = true
-
         const {user, session, error} = await supabase.auth.signIn({
           provider: 'facebook',
         });
-
         console.log('Response from sign-in: ', {user, session, error});
-        if (error) throw error
-        alert("Fjesboka sier hei!")
-      } catch (error: any) {
-        alert(error.error_description || error.message)
+        if (error)
+          alert(error.message);
       } finally {
         loading.value = false
       }
@@ -67,11 +63,13 @@ export default {
 
 <template>
 
-  <form @submit.prevent="handleFacebookLogin">
-
-    <label>Logg inn via fjesboken: </label>
-
-    <input type="submit" value="Facebook !">
+  <form>
+    <label>
+      Logg inn vha Facebook:
+      <button style="border: none; background-color: inherit;" @click="handleFacebookLogin">
+        <img role="button" src="/src/assets/fb.png" alt="facebook" style="max-width: 2em; display: inline-block;">
+      </button>
+    </label>
 
   </form>
 
@@ -79,13 +77,14 @@ export default {
   <form class="row flex flex-center" @submit.prevent="handlePasswordLogin">
     <div class="col-6 form-widget">
       <p class="description">
-        Sign in via e-mail and password.
+        Logg inn vha e-post og passord, hvis du har registrert deg tidligere. 
+        Ikke bruk passordet til din e-post! 
       </p>
       <div>
         <input
             class="inputField"
             type="email"
-            placeholder="Your email"
+            placeholder="E-post"
             v-model="email"
         />
       </div>
@@ -93,7 +92,7 @@ export default {
         <input
             class="inputField"
             type="password"
-            placeholder="Your password"
+            placeholder="passord"
             v-model="password"
         />
       </div>
@@ -111,13 +110,13 @@ export default {
   <form class="row flex flex-center" @submit.prevent="handleMagicLogin">
     <div class="col-6 form-widget">
       <p class="description">
-        Sign in via magic link with your email below.
+        Logg inn / registrer deg ved å få tilsendt en magisk innloggingslenke: 
       </p>
       <div>
         <input
             class="inputField"
             type="email"
-            placeholder="Your email"
+            placeholder="e-post"
             v-model="email"
         />
       </div>
@@ -125,7 +124,7 @@ export default {
         <input
             type="submit"
             class="button block"
-            :value="loading ? 'Loading' : 'Send magic link'"
+            :value="loading ? 'Loading' : 'Send innloggingslenke'"
             :disabled="loading"
         />
       </div>

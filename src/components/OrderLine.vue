@@ -1,10 +1,3 @@
-<script lang="ts">
-export default {
-	name: 'Bestillinger',
-	path: '/orderline'
-}
-</script>
-
 <script setup lang="ts">
 import { onBeforeMount, Ref, ref, UnwrapRef } from "vue";
 import { supabase } from "../supa";
@@ -26,6 +19,7 @@ const save = async () => {
 		alert('Error: ' + error.message);
 	} else {
 		console.log("Saved: ", { data });
+    item.value = {};
 		await refresh();
 	}
 };
@@ -86,11 +80,14 @@ th {
 .pull-right {
 	float: right;
 }
-
+table {
+  width: 100%;
+}
 </style>
 
 <template>
 
+  <h2>Bestillinger</h2>
 
 	<form @submit.prevent="save">
 		<fieldset>

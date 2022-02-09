@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { supabase } from "../supa"
-import { store } from "../supa/store"
-import { onMounted, ref, watchEffect } from "vue"
-import { promisedReactive } from '../utils/promisedReactive';
+import {supabase} from "../supa"
+import {store} from "../supa/store"
+import {onMounted, ref, watchEffect} from "vue"
+import {promisedReactive} from '../utils/promisedReactive';
 
 const loading = ref(true)
 const username = ref("")
@@ -10,106 +10,106 @@ const website = ref("")
 const avatar_url = ref("")
 
 interface Profile {
-	username: string;
-	website: string;
-	avatar_url: string;
+  username: string;
+  website: string;
+  avatar_url: string;
 }
 
 const profile = promisedReactive<Profile>(
-	{ username: '', website: '', avatar_url: ''},
-	async () => {
-		store.user = supabase.auth.user()
+    {username: '', website: '', avatar_url: ''},
+    async () => {
+      store.user = supabase.auth.user()
 
-		let { data, error, status } = await supabase
-			.from("profiles")
-			.select(`username, website, avatar_url`)
-			.eq("id", store.user?.id)
-			.single()
+      let {data, error, status} = await supabase
+          .from("profiles")
+          .select(`username, website, avatar_url`)
+          .eq("id", store.user?.id)
+          .single()
 
-		if (error && status !== 406) throw error
+      if (error && status !== 406) throw error
 
-		return data;
-	}
+      return data;
+    }
 )
 
 watchEffect(() => {
-	loading.value = profile.loading;
-	if (profile.error) {
-		alert(profile.error.message);
-	}
+  loading.value = profile.loading;
+  if (profile.error) {
+    alert(profile.error.message);
+  }
 })
 
 async function updateProfile() {
-	try {
-		loading.value = true
-		store.user = supabase.auth.user()
+  try {
+    loading.value = true
+    store.user = supabase.auth.user()
 
-		const updates = {
-			id: store.user?.id,
-			username: profile.value.username,
-			website: profile.value.website,
-			avatar_url: profile.value.avatar_url,
-			updated_at: new Date(),
-		}
+    const updates = {
+      id: store.user?.id,
+      username: profile.value.username,
+      website: profile.value.website,
+      avatar_url: profile.value.avatar_url,
+      updated_at: new Date(),
+    }
 
-		let { error } = await supabase.from("profiles").upsert(updates, {
-			returning: "minimal", // Don't return the value after inserting
-		})
+    let {error} = await supabase.from("profiles").upsert(updates, {
+      returning: "minimal", // Don't return the value after inserting
+    })
 
-		if (error) throw error
-	} catch (error) {
-		alert(error.message)
-	} finally {
-		loading.value = false
-	}
+    if (error) throw error
+  } catch (error) {
+    alert(error.message)
+  } finally {
+    loading.value = false
+  }
 }
 
 async function signOut() {
-	try {
-		loading.value = true
-		let { error } = await supabase.auth.signOut()
-		if (error) throw error
-	} catch (error) {
-		alert(error.message)
-	} finally {
-		loading.value = false
-	}
+  try {
+    loading.value = true
+    let {error} = await supabase.auth.signOut()
+    if (error) alert(error.message)
+  } finally {
+    loading.value = false
+  }
 }
 </script>
 
 <template>
 
-	<p>
-		Yupp, u are logged in! U can update ure profile below:
-	</p>
+  <p>
+    Du er logget inn som <strong>{{ store.user.email }}</strong>
+  </p>
 
-	<form class="form-widget" @submit.prevent="updateProfile">
-		<div>
-			<label for="email">Email</label>
-			<input id="email" type="text" :value="store.user.email" disabled />
-		</div>
-		<div>
-			<label for="username">Name</label>
-			<input id="username" type="text" v-model="profile.value.username" />
-		</div>
-		<div>
-			<label for="website">Website</label>
-			<input id="website" type="website" v-model="profile.value.website" />
-		</div>
+  <div>
+    <button class="button block" @click="signOut" :disabled="loading">
+      Logg ut
+    </button>
+  </div>
+  <form class="form-widget" @submit.prevent="updateProfile">
+    <fieldset>
+      <legend>Oppdater brukerinformasjon</legend>
+      <div>
+        <label for="email">Email</label>
+        <input id="email" type="text" :value="store.user.email" disabled/>
+      </div>
+      <div>
+        <label for="username">Name</label>
+        <input id="username" type="text" v-model="profile.value.username"/>
+      </div>
+      <div>
+        <label for="website">Website</label>
+        <input id="website" type="url" v-model="profile.value.website"/>
+      </div>
+    </fieldset>
+    <div>
+      <input
+          type="submit"
+          class="button block primary"
+          :value="loading ? 'Loading ...' : 'Update'"
+          :disabled="loading"
+      />
+    </div>
 
-		<div>
-			<input
-				type="submit"
-				class="button block primary"
-				:value="loading ? 'Loading ...' : 'Update'"
-				:disabled="loading"
-			/>
-		</div>
-
-		<div>
-			<button class="button block" @click="signOut" :disabled="loading">
-				Sign Out
-			</button>
-		</div>
-	</form>
+  </form>
 </template>

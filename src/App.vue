@@ -96,7 +96,7 @@ nav {
 
 a {
   padding-right: 0.5em;
-  outline: greenyellow 1px solid;
+  /*outline: greenyellow 1px solid;*/
 }
 
 #app {
