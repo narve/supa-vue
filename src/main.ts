@@ -34,8 +34,9 @@ const myRoutes: RouterOptions = {
 		{
 			path: "/",
 			// alias: "/home",
-			name: HomeComponent.name,
-			component: HomeComponent,
+			// name: HomeComponent.name,
+			// component: HomeComponent,
+			component: OrderLine,
 		},
 		{
 			path: "/show/:name",

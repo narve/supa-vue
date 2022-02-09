@@ -5,13 +5,17 @@ import {Ref, ref, UnwrapRef} from "vue";
 import {supabase} from "../supa";
 
 const items: Ref<UnwrapRef<any[]>> = ref([]);
-const newItem: Ref<UnwrapRef<any>> = ref({});
+const item: Ref<UnwrapRef<any>> = ref({});
+const sums: Ref<UnwrapRef<{ amount_to_pay: number, number_of_items: number }>> = ref({
+  amount_to_pay: 0,
+  number_of_items: 0
+});
 
 const save = async () => {
   const user = supabase.auth.user();
-  console.log('create new', {user}, JSON.stringify(newItem.value, null, ' '));
-  newItem.value.owner_id = user?.id;
-  const {error, data} = await supabase.from("orderline").insert(newItem.value);
+  console.log('create new', {user}, JSON.stringify(item.value, null, ' '));
+  item.value.owner_id ||= user?.id;
+  const {error, data} = await supabase.from("orderline").upsert(item.value);
   if (error) {
     console.error(error.message);
     alert('Error: ' + error.message);
@@ -20,21 +24,6 @@ const save = async () => {
     await refresh();
   }
 };
-
-const refresh = async () => {
-  const user = supabase.auth.user();
-  console.log('refresh', {user});
-  const {error, data} = await supabase.from("orderline");
-  if (error) console.error(error);
-  else {
-    console.log(data);
-    if (data) {
-      items.value = data;
-      const sum = (items.value || []).map(s=>s.number_of_items).reduce((a,b) => a+b, 0);
-      console.log( "sum: ", sum);
-    }
-  }
-}
 
 const remove = async (args?: any) => {
   console.log('remove', args);
@@ -46,12 +35,31 @@ const remove = async (args?: any) => {
   }
 }
 
+const refresh = async () => {
+  const {error, data} = await supabase.from("orderline");
+  if (error) console.error(error);
+  else if (data) {
+    console.log(data);
+    items.value = data;
+    sums.value.number_of_items = (items.value || []).map(s => s.number_of_items).reduce((a, b) => a + b, 0);
+    sums.value.amount_to_pay = sums.value.number_of_items * 75;
+  }
+}
+
+const edit = async (id: string) => {
+  item.value = Object.assign({}, items.value.find(s => s.id === id));
+}
+
+const reset = async () => {
+  item.value = {};
+}
+
+
 await refresh();
 
 export default {
   methods: {
-    // return {
-    async upsertItem() {
+    async save() {
       await save();
     },
     async refresh() {
@@ -59,12 +67,19 @@ export default {
     },
     async remove(id: string) {
       await remove(id);
-    }
+    },
+    async edit(id: string) {
+      await edit(id);
+    },
+    async reset() {
+      await reset();
+    },
   },
   setup() {
     return {
       items,
-      newItem
+      item,
+      sums,
     };
   },
   name: 'Bestillinger',
@@ -72,9 +87,9 @@ export default {
 }
 </script>
 
-<style>
+<style scoped>
 
-input {
+form fieldset input {
   display: inline-block;
   width: auto;
 }
@@ -84,35 +99,52 @@ label span {
   min-width: 8em;
 }
 
+th {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pull-right {
+  float: right;
+}
+
 </style>
 
 <template>
-  <form @submit.prevent="upsertItem">
+
+
+  <form @submit.prevent="save">
     <fieldset>
-      <legend>Registrer ny bestilling</legend>
+      <legend>
+        <i class="material-icons">add</i>
+        <span v-if="item.id">Oppdater</span>
+        <span v-if="!item.id">Registrer</span>
+      </legend>
       <label>
         <span>Navn:</span>
-        <input type="text" v-model="newItem['name']">
+        <input type="text" v-model="item['name']">
       </label>
       <label>
         <span>Adresse:</span>
-        <input type="text" v-model="newItem['address']">
+        <input type="text" v-model="item['address']">
       </label>
       <label>
         <span>Antall:</span>
-        <input type="number" v-model="newItem['number_of_items']">
+        <input type="number" v-model="item['number_of_items']">
       </label>
       <label>
         <span>Kommentarer:</span>
-        <input type="text" v-model="newItem['notes']">
+        <input type="text" v-model="item['notes']">
       </label>
-      <input type="submit" value="Registrer">
+      <span class="pull-right">
+        <i class="material-icons">add</i>
+        <input v-if="item.id" type="reset" value="Avbryt" @click="reset">
+        <input type="submit" :value="item.id ? 'Oppdater' : 'Registrer'">
+      </span>
     </fieldset>
   </form>
 
-  <p>
-    <button @click="refresh">Oppdater</button>
-  </p>
   <table>
     <thead>
     <tr>
@@ -121,7 +153,11 @@ label span {
       <th>Antall</th>
       <th>Notat</th>
       <th>Å betale</th>
-      <th>Handlinger</th>
+      <th>
+        <!--        Handlinger-->
+        <!--                <button @click="refresh">Oppdater</button>-->
+        <i style="float:right" class="material-icons" @click="refresh">refresh</i>
+      </th>
     </tr>
     </thead>
     <tbody>
@@ -129,10 +165,12 @@ label span {
       <td>{{ item.name }}</td>
       <td>{{ item.address }}</td>
       <td>{{ item.number_of_items }}</td>
-      <td>{{item.owner_id}}</td>
+      <td>{{ item.notes }}</td>
       <td>{{ item.number_of_items * 75 }}</td>
       <th>
-        <button @click="remove(item.id)">DELETE</button>
+
+        <button @click="edit(item.id)"><i class="material-icons">edit</i></button>
+        <button @click="remove(item.id)"><i class="material-icons">delete</i></button>
       </th>
     </tr>
     </tbody>
@@ -141,9 +179,9 @@ label span {
       <th colspan="2">
         Totalt:
       </th>
-      <th>{{(items.value || []).map(s=>s.number_of_items).reduce((a,b) => a+b, 0)}}</th>
+      <th>{{ sums.number_of_items }}</th>
       <th></th>
-      <th>213123</th>
+      <th>{{ sums.amount_to_pay }}</th>
     </tr>
     </tfoot>
   </table>
