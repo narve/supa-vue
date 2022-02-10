@@ -333,3 +333,7 @@ create policy orderline_policy_all
     using (auth.uid() = owner_id )
     with check (auth.uid() = owner_id or is_admin());
 
+
+drop view orderline_statistics;
+create or replace view orderline_statistics as
+select sum(number_of_items) number_of_items, sum(number_of_items)*75 total_amount from orderline
