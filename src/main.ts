@@ -7,6 +7,7 @@ import AuthComponent from './components/Auth.vue';
 import DataComponent from './components/DataComponent.vue';
 import PasswordRecovery from './components/PasswordRecovery.vue';
 import OrderLine from "./components/OrderLine.vue";
+import {supabase} from "./supa";
 
 // import "./assets/main.css"
 
@@ -36,9 +37,11 @@ const myRoutes: RouterOptions = {
 			// name: HomeComponent.name,
 			// component: HomeComponent,
 			component: OrderLine,
+			
 		},
 		{
 			path: "/auth",
+			name: "auth",
 			// alias: "/home",
 			// name: HomeComponent.name,
 			// component: HomeComponent,
@@ -59,6 +62,13 @@ const myRoutes: RouterOptions = {
 };
 
 const app = createApp(App);
-app.use(createRouter(myRoutes));
+const router = createRouter(myRoutes);
+router.beforeEach(async (to, from, next) => {
+	const isAuthenticated = !!await supabase.auth.user()?.id;
+	if (to.name !== 'auth' && !isAuthenticated) next({ name: 'auth' })
+	else next()
+})
+
+app.use(router);
 app.mount('#app')
 

@@ -46,6 +46,8 @@ watchEffect(() => {
 
 <template>
 
+  <h1>Dugnadsløsningen</h1>
+
   <RouterLink to="auth" style="float:right" > 
     <i class="material-icons" @click="">person</i>
   </RouterLink>
@@ -73,7 +75,7 @@ watchEffect(() => {
 
 
   <section>
-    <h1>{{ $route.name }}</h1>
+<!--    <h1>{{ $route.name }}</h1>-->
     <RouterView></RouterView>
   </section>
 

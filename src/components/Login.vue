@@ -36,7 +36,7 @@ export default {
     const handleFacebookLogin = async () => {
       try {
         loading.value = true
-        const {user, session, error} = supabase.auth.signIn({
+        const {user, session, error} = await supabase.auth.signIn({
           provider: 'facebook',
         });
         console.log('Response from sign-in: ', {user, session, error});

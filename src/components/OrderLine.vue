@@ -104,7 +104,7 @@ table {
 
 <template>
 
-  <h2>Bestillinger</h2>
+<!--  <h2>Bestillinger</h2>-->
 
   <div class="statistics" v-if="orderline_statistics.number_of_items">
     Totalt: {{ orderline_statistics.number_of_items }} bestillinger, {{ orderline_statistics.total_amount }} kr!
