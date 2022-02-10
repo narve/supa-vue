@@ -56,9 +56,8 @@ async function updateProfile() {
       returning: "minimal", // Don't return the value after inserting
     })
 
-    if (error) throw error
-  } catch (error) {
-    alert(error.message)
+    if (error)
+      alert(error.message)
   } finally {
     loading.value = false
   }
@@ -78,7 +77,7 @@ async function signOut() {
 <template>
 
   <p>
-    Du er logget inn som <strong>{{ store.user.email }}</strong>
+    Du er logget inn som <strong>{{ store.user?.email }}</strong>
   </p>
 
   <div>
@@ -91,7 +90,7 @@ async function signOut() {
       <legend>Oppdater brukerinformasjon</legend>
       <div>
         <label for="email">Email</label>
-        <input id="email" type="text" :value="store.user.email" disabled/>
+        <input id="email" type="text" :value="store.user?.email" disabled/>
       </div>
       <div>
         <label for="username">Name</label>

@@ -13,10 +13,9 @@ export default {
       try {
         loading.value = true
         const {error} = await supabase.auth.signIn({email: email.value})
-        if (error) throw error
+        if (error)
+          alert(error.message)
         alert("Check your email for the login link!")
-      } catch (error) {
-        alert(error.error_description || error.message)
       } finally {
         loading.value = false
       }
@@ -24,12 +23,11 @@ export default {
     const handlePasswordLogin = async () => {
       try {
         loading.value = true
-        const response = await supabase.auth.signIn({email: email.value, password: password.value});
-        console.log('Response from sign-in: ', response);
-        if (response.error) throw response.error
-        alert("You are logged in now!")
-      } catch (error) {
-        alert(error.error_description || error.message)
+        const {error} = await supabase.auth.signIn({email: email.value, password: password.value});
+        if (error)
+          alert(error.message)
+        else
+          alert("Nå er du logget inn :) ")
       } finally {
         loading.value = false
       }
@@ -77,8 +75,8 @@ export default {
   <form class="row flex flex-center" @submit.prevent="handlePasswordLogin">
     <div class="col-6 form-widget">
       <p class="description">
-        Logg inn vha e-post og passord, hvis du har registrert deg tidligere. 
-        Ikke bruk passordet til din e-post! 
+        Logg inn vha e-post og passord, hvis du har registrert deg tidligere.
+        Ikke bruk passordet til din e-post!
       </p>
       <div>
         <input
@@ -110,7 +108,7 @@ export default {
   <form class="row flex flex-center" @submit.prevent="handleMagicLogin">
     <div class="col-6 form-widget">
       <p class="description">
-        Logg inn / registrer deg ved å få tilsendt en magisk innloggingslenke: 
+        Logg inn / registrer deg ved å få tilsendt en magisk innloggingslenke:
       </p>
       <div>
         <input

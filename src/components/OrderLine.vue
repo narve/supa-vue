@@ -3,7 +3,7 @@ import {onBeforeMount, onBeforeUnmount, Ref, ref, UnwrapRef} from "vue";
 import {supabase} from "../supa";
 import {onBeforeRouteLeave} from "vue-router";
 
-const orderline_statistics = ref([] as any[]);
+const orderline_statistics = ref([] as any);
 const items = ref([] as any[]);
 const item: Ref<UnwrapRef<any>> = ref({});
 const sums = ref({

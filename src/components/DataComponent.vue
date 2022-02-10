@@ -2,30 +2,27 @@
 
 import {fetchDataAsync, supabase} from "../supa";
 import {useRouter} from "vue-router";
-import {Ref, ref, UnwrapRef, watch} from "vue";
+import {ref, watch} from "vue";
+import {Definitions} from "../supa/SupaTypes";
 
-let tableName = ref('...')
+const tableName = ref('...')
 
 const router = useRouter();
 
-const newObject = ref({});
+const newObject = ref({} as any);
 
-const data = ref([]);
+const data = ref([] as any[]);
 const columns = ref<string[]>([]);
-const editableColumns = ref<string[]>([]);
+const editableColumns = ref<any[]>([]);
 const tableColumns = ref<string[]>([]);
 
-const selectors = ref({
-  asdf: [4, 5, 6].map(i => ({
-    id: "id_" + i,
-    title: "value number " + i,
-  }))
-});
+const selectors = ref({} as any);
 
 const applyTable = () => {
   tableName.value = router.currentRoute.value.params.name as string;
   console.log('fetching: ', tableName.value);
-  fetchDataAsync(supabase, tableName.value)
+  const tName: keyof Definitions = <keyof Definitions>tableName.value;
+  fetchDataAsync(supabase, tName)
       .then((x: any) => {
         console.log('meta: ', x.meta);
         data.value = x.data;
@@ -52,7 +49,10 @@ const applyTable = () => {
 
         for (const fkTable of new Set(fkTablesToFetch)) {
           supabase.from(fkTable).select("*").then((r: { data: any, error: any }) => {
-            const options = r.data.map(d => ({id: d.id, title: d.name || d.title || d.label || d.email || d.id || d}));
+            const options = r.data.map((d: any) => ({
+              id: d.id,
+              title: d.name || d.title || d.label || d.email || d.id || d
+            }));
             console.log('adding to selectors: ', fkTable, options);
             selectors.value[fkTable] = options;
             // console.log('selectors now after ', fkTable, ': ', selectors.value);
@@ -93,8 +93,8 @@ const pluralize = (s: string) => s.endsWith("s") ? s : s + "s";
 
 const toPluralTitle = (s: string) => upcaseFirst(pluralize(s));
 
-const handleCreate = (args: any) => {
-  const tableName = router.currentRoute.value.params.name;
+const handleCreate = () => {
+  const tableName = router.currentRoute.value.params.name as string;
   console.log('create: ', JSON.stringify(newObject.value));
   // noinspection JSVoidFunctionReturnValueUsed,TypeScriptValidateJSTypes
   supabase.from(tableName).insert([newObject.value])
@@ -102,27 +102,27 @@ const handleCreate = (args: any) => {
         console.log('response: ', x);
         if (x.error) throw x.error;
         applyTable();
-      }).catch((err: any) => alert(err.message));
+      }, (err: any) => alert(err.message));
 }
 
-const deleteRow = (id: any) => {
+const deleteRow = (id: string) => {
   console.log('should delete: ', id);
-  const tableName = router.currentRoute.value.params.name;
-  supabase.from(tableName).delete([id]).eq('id', id)
+  const tableName = router.currentRoute.value.params.name as string;
+  supabase.from(tableName).delete().eq('id', id)
       .then((x: any) => {
         console.log('response: ', x);
         if (x.error) throw x.error;
         applyTable();
-      }).catch((err: any) => alert(err.message));
+      }, (err: any) => alert(err.message));
 }
 
-const getOptions = (prop: any) => {
-  console.log('options for ', prop.name, selectors, selectors[prop.name]);
-  return [1, 2, 3].map(i => ({
-    id: "id_" + i,
-    title: "value number " + i,
-  }));
-}
+// const getOptions = (prop: any) => {
+//   console.log('options for ', prop.name, selectors, selectors[prop.name]);
+//   return [1, 2, 3].map(i => ({
+//     id: "id_" + i,
+//     title: "value number " + i,
+//   }));
+// }
 
 </script>
 <template>
@@ -161,10 +161,10 @@ const getOptions = (prop: any) => {
           <!--          <pre>{{field}}</pre>-->
           {{ cellTitle(field) }}
 
-          <input v-if="field.type === 'boolean'" 
+          <input v-if="field.type === 'boolean'"
                  type="checkbox"/>
 
-          <input v-else-if="!field.isFk" 
+          <input v-else-if="!field.isFk"
                  v-model="newObject[field.name]"
                  v-bind:placeholder="field.name"
                  name="field.name"
