@@ -68,7 +68,8 @@ const reset = async () => {
 let statisticsIntervalRef: number;
 onBeforeMount(async () => {
   await refresh();
-  statisticsIntervalRef = window.setInterval(fetchStatistics, 1000);
+  await fetchStatistics();
+  statisticsIntervalRef = window.setInterval(fetchStatistics, 10000);
 })
 onBeforeUnmount(async () => {
   window.clearInterval(statisticsIntervalRef);
@@ -76,6 +77,10 @@ onBeforeUnmount(async () => {
 </script>
 
 <style scoped>
+
+button {
+  margin-left: 2px;
+}
 
 form fieldset input {
   display: inline-block;
@@ -104,26 +109,30 @@ table {
 
 <template>
 
-<!--  <h2>Bestillinger</h2>-->
+  <!--  <h2>Bestillinger</h2>-->
 
-  <div class="statistics" v-if="orderline_statistics.number_of_items">
-    Totalt: {{ orderline_statistics.number_of_items }} bestillinger, {{ orderline_statistics.total_amount }} kr!
+  <div class="statistics" v-if="!!supabase.auth.user()?.id"
+       :style="{visibility: orderline_statistics.number_of_items ? 'visible': 'hidden'}"
+  >
+    Totalt:
+    {{ orderline_statistics.number_of_items?.toLocaleString("NO", {useGrouping: true}) }} bestillinger,
+    {{ orderline_statistics.total_amount?.toLocaleString("NO", {useGrouping: true}) }} kr!
   </div>
 
   <form @submit.prevent="save">
     <fieldset>
       <legend>
-        <i class="material-icons">add</i>
+<!--        <i class="material-icons">add</i>-->
         <span v-if="item.id">Oppdater</span>
-        <span v-if="!item.id">Registrer</span>
+        <span v-if="!item.id">Registrer ny bestilling</span>
       </legend>
       <label>
         <span>Navn:</span>
-        <input type="text" v-model="item['name']">
+        <input type="text" v-model.trim="item['name']">
       </label>
       <label>
         <span>Adresse:</span>
-        <input type="text" v-model="item['address']">
+        <input type="text" v-model.trim="item['address']">
       </label>
       <label>
         <span>Antall:</span>
@@ -131,12 +140,15 @@ table {
       </label>
       <label>
         <span>Kommentarer:</span>
-        <input type="text" v-model="item['notes']">
+        <input type="text" v-model.trim="item['notes']">
       </label>
       <span class="pull-right">
-        <i class="material-icons">add</i>
-        <input v-if="item.id" type="reset" value="Avbryt" @click="reset">
-        <input type="submit" :value="item.id ? 'Oppdater' : 'Registrer'">
+        <button v-if="item.id" role="button" value="Avbryt" @click="reset">Avbryt</button>
+        <button role="button">
+<!--        <i class="material-icons">add</i>-->
+          {{item.id? 'Oppdater' : 'Registrer'}}
+        </button>
+<!--        <input type="submit" :value="item.id ? 'Oppdater' : 'Registrer'">-->
       </span>
     </fieldset>
   </form>
@@ -147,7 +159,7 @@ table {
       <th>Navn</th>
       <th>Addresse</th>
       <th>Antall</th>
-      <th>Notat</th>
+<!--      <th>Notat</th>-->
       <th>Å betale</th>
       <th>
         <!--        Handlinger-->
@@ -161,7 +173,7 @@ table {
       <td>{{ item.name }}</td>
       <td>{{ item.address }}</td>
       <td>{{ item.number_of_items }}</td>
-      <td>{{ item.notes }}</td>
+<!--      <td>{{ item.notes }}</td>-->
       <td>{{ item.number_of_items * 75 }}</td>
       <th>
 
@@ -173,10 +185,10 @@ table {
     <tfoot>
     <tr>
       <th colspan="2">
-        Totalt:
+        Dine bestillinger:
       </th>
       <th>{{ sums.number_of_items }}</th>
-      <th></th>
+<!--      <th></th>-->
       <th>{{ sums.amount_to_pay }}</th>
     </tr>
     </tfoot>

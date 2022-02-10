@@ -13,8 +13,6 @@ import Profile from "../components/Profile.vue"
 
 <template>
 
-  <a href="/"> <i class="material-icons">home</i></a>
-
   <div class="container">
     <Profile v-if="store.user"/>
     <Login v-else/>

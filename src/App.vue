@@ -46,36 +46,43 @@ watchEffect(() => {
 
 <template>
 
+  <div style="float:right; display:inline-block;">
+    <RouterLink to="auth" v-if="router.currentRoute.value.name !== 'auth'">
+      <span v-if="!!supabase.auth.user()?.id">{{ supabase.auth.user().email }}</span>
+      <i class="material-icons">person</i>
+    </RouterLink>
+    <RouterLink to="home" v-if="router.currentRoute.value.name !== 'home'">
+      <i class="material-icons">home</i>
+    </RouterLink>
+  </div>
+
+
   <h1>Dugnadsløsningen</h1>
 
-  <RouterLink to="auth" style="float:right" > 
-    <i class="material-icons" @click="">person</i>
-  </RouterLink>
 
-<!--  <p>-->
-<!--    <span v-if="store.user" :title="store.user.role">{{ store.user.email }}</span>-->
-<!--    &lt;!&ndash;    <template v-if- {{ store.user.role }}</template>&ndash;&gt;-->
-<!--    &lt;!&ndash;    <template v-else>NB: Not logged in</template>&ndash;&gt;-->
-<!--  </p>-->
-  
-<!--  <nav>-->
-<!--    <RouterLink v-for='route of filteredRouteList' :to="route.path" :key="route.path">-->
-<!--      {{ route.name || route.path }}-->
-<!--    </RouterLink>-->
-<!--  </nav>-->
+  <!--  <p>-->
+  <!--    <span v-if="store.user" :title="store.user.role">{{ store.user.email }}</span>-->
+  <!--    &lt;!&ndash;    <template v-if- {{ store.user.role }}</template>&ndash;&gt;-->
+  <!--    &lt;!&ndash;    <template v-else>NB: Not logged in</template>&ndash;&gt;-->
+  <!--  </p>-->
 
-<!--  <nav v-if="dataList.value.length">-->
-<!--    <RouterLink v-for="route of dataList.value" :to="route.path">-->
-<!--      {{ route.title || route.name || route.path }}-->
-<!--    </RouterLink>-->
-<!--  </nav>-->
+  <!--  <nav>-->
+  <!--    <RouterLink v-for='route of filteredRouteList' :to="route.path" :key="route.path">-->
+  <!--      {{ route.name || route.path }}-->
+  <!--    </RouterLink>-->
+  <!--  </nav>-->
+
+  <!--  <nav v-if="dataList.value.length">-->
+  <!--    <RouterLink v-for="route of dataList.value" :to="route.path">-->
+  <!--      {{ route.title || route.name || route.path }}-->
+  <!--    </RouterLink>-->
+  <!--  </nav>-->
 
   <!--  <button @click="addRoute">HIT ME</button>-->
 
 
-
   <section>
-<!--    <h1>{{ $route.name }}</h1>-->
+    <!--    <h1>{{ $route.name }}</h1>-->
     <RouterView></RouterView>
   </section>
 

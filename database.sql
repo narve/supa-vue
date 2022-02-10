@@ -304,7 +304,7 @@ where e.id = '1c28af16-6ba6-4985-a143-4d28f01d3c86' )
 ;
 notify pgrst, 'reload schema';
 
-
+alter table orderline alter column address drop not null
 
 drop table if exists orderline;
 create table orderline
@@ -312,9 +312,10 @@ create table orderline
     id          uuid primary key default (gen_random_uuid()),
     owner_id    uuid    not null references auth.users (id),
     name        text    not null,
-    address     text    not null,
+    address     text,
     number_of_items integer not null,
-    notes       text
+    notes       text,
+    constraint name_not_empty check (length(trim(name)) > 0)
 );
 alter table orderline
     enable row level security;

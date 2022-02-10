@@ -33,7 +33,8 @@ const myRoutes: RouterOptions = {
 	routes: [
 		{
 			path: "/",
-			// alias: "/home",
+			alias: "/home",
+			name: "home",
 			// name: HomeComponent.name,
 			// component: HomeComponent,
 			component: OrderLine,
