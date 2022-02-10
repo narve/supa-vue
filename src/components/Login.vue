@@ -36,7 +36,7 @@ export default {
     const handleFacebookLogin = async () => {
       try {
         loading.value = true
-        const {user, session, error} = await supabase.auth.signIn({
+        const {user, session, error} = supabase.auth.signIn({
           provider: 'facebook',
         });
         console.log('Response from sign-in: ', {user, session, error});
@@ -64,7 +64,7 @@ export default {
   <form>
     <label>
       Logg inn vha Facebook:
-      <button style="border: none; background-color: inherit;" @click="handleFacebookLogin">
+      <button style="border: none; background-color: inherit;" @click.prevent="handleFacebookLogin">
         <img role="button" src="/src/assets/fb.png" alt="facebook" style="max-width: 2em; display: inline-block;">
       </button>
     </label>

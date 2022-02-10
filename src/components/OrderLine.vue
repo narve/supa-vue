@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import {onBeforeMount, onBeforeUnmount, Ref, ref, UnwrapRef} from "vue";
 import {supabase} from "../supa";
-import {onBeforeRouteLeave} from "vue-router";
 
 const orderline_statistics = ref([] as any);
 const items = ref([] as any[]);
@@ -107,7 +106,7 @@ table {
 
   <h2>Bestillinger</h2>
 
-  <div class="statistics">
+  <div class="statistics" v-if="orderline_statistics.number_of_items">
     Totalt: {{ orderline_statistics.number_of_items }} bestillinger, {{ orderline_statistics.total_amount }} kr!
   </div>
 
