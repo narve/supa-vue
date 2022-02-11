@@ -2,7 +2,7 @@
 import {onBeforeMount, onBeforeUnmount, Ref, ref, UnwrapRef} from "vue";
 import {supabase} from "../supa";
 
-const orderline_statistics = ref([] as any);
+const orderline_statistics = ref([] as any[]);
 const items = ref([] as any[]);
 const item: Ref<UnwrapRef<any>> = ref({});
 const sums = ref({
@@ -32,6 +32,7 @@ const remove = async (args?: any) => {
   else {
     console.log(data);
     await refresh();
+    await fetchStatistics();
   }
 }
 
@@ -41,7 +42,7 @@ const fetchStatistics = async () => {
     console.log("Statistics failed: ", error.message);
   } else {
     console.log('got statistics: ', data);
-    orderline_statistics.value = (data || [])[0];
+    orderline_statistics.value = data as any[];
   }
 }
 
@@ -157,6 +158,20 @@ div.money.money.money {
   font-weight: lighter;
 }
 
+.totals {
+  display: grid;
+  max-width: 30em;
+  grid-template-columns: minmax(2em, 5em) minmax(2em, 3em) minmax(2em, 3em) minmax(2em, 5em)  minmax(2em, 5em) minmax(2em, 5em) ;
+}
+
+.totals span {
+  padding-right: 1em;
+}
+
+.totals span {
+  text-align: right;
+}
+
 </style>
 
 <template>
@@ -164,23 +179,19 @@ div.money.money.money {
   <!--  <h2>Bestillinger</h2>-->
 
   <div class="statistics" v-if="!!supabase.auth.user()?.id"
-       :style="{visibility: orderline_statistics.number_of_items ? 'visible': 'hidden'}"
+       :style="{visibility: orderline_statistics.length > 0 ? 'visible': 'hidden'}"
   >
     <div class="totals">
-      <div class="total" v-for="total of orderline_statistics">
-        <span class="label">{{total.label||'Totalt'}}: </span>
-        <span class="number_of_items">{{num(orderline_statistics.number_of_items)}}</span>
-        <span class="a">á 75kr =</span>
-        <span class="total_amount">{{ num(orderline_statistics.total_amount) }}</span>
-      </div>
+      <template class="total" v-for="total of orderline_statistics">
+        <span class="label">{{ total.label}}: </span>
+        <span class="number_of_items">{{ num(total.number_of_items) }}</span>
+        <span class="unit">{{ total.unit ||'brett' }}</span>
+        <span class="a">á 75kr</span>
+        <span class="eq">=</span>
+        <span class="total_amount">{{ num(total.total_amount) }}kr</span>
+      </template>
     </div>
 
-    <div>
-      Dine:
-      <span class="money">
-      {{ num(sums.number_of_items) }} brett á 75 = {{ num(sums.amount_to_pay) }} kr!
-    </span>
-    </div>
   </div>
 
   <form @submit.prevent="save">
@@ -192,7 +203,7 @@ div.money.money.money {
       </legend>
       <label>
         <span>Navn:</span>
-        <input type="text" v-model.trim="item['name']">
+        <input type="text" v-model.trim="item['name']" required>
       </label>
       <label>
         <span>Adresse:</span>
@@ -200,7 +211,7 @@ div.money.money.money {
       </label>
       <label>
         <span>Antall:</span>
-        <input type="number" v-model="item['number_of_items']">
+        <input type="number" v-model="item['number_of_items']" required>
       </label>
       <label>
         <span>Kommentarer:</span>
@@ -208,7 +219,7 @@ div.money.money.money {
       </label>
       <span class="pull-right">
         <button v-if="item.id" role="button" @click="reset">Avbryt</button>
-        <button v-if="item.id" role="button" @click="delete(item.id)">Fjern</button>
+        <button v-if="item.id" role="button" @click="remove(item.id)">Fjern</button>
         <button role="button">
           {{ item.id ? 'Oppdater' : 'Registrer' }}
         </button>
@@ -226,22 +237,7 @@ div.money.money.money {
   <div class="item" v-for="item of items" @click="edit(item.id)">
     <div>{{ item.name }}</div>
     <div>{{ item.address }}</div>
-    <!--    <div>{{ item.notes }}</div>-->
     <div class="money">{{ item.number_of_items }} brett á 75kr = {{ item.number_of_items * 75 }}kr</div>
-    <!--    <div>{{ item.number_of_items * 75 }}</div>-->
-    <div>
-      <button @click="edit(item.id)"><i class="material-icons">edit</i></button>
-      <button @click="remove(item.id)"><i class="material-icons">delete</i></button>
-    </div>
   </div>
-
-  <!--  <div>-->
-  <!--    <div >-->
-  <!--      Dine bestillinger:-->
-  <!--    </div>-->
-  <!--    <div>{{ sums.number_of_items }}</div>-->
-  <!--    &lt;!&ndash;      <th></th>&ndash;&gt;-->
-  <!--    <th>{{ sums.amount_to_pay }}</th>-->
-  <!--  </div>-->
 
 </template>

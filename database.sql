@@ -304,17 +304,18 @@ where e.id = '1c28af16-6ba6-4985-a143-4d28f01d3c86' )
 ;
 notify pgrst, 'reload schema';
 
-alter table orderline alter column address drop not null
+alter table orderline
+    alter column address drop not null
 
 drop table if exists orderline;
 create table orderline
 (
-    id          uuid primary key default (gen_random_uuid()),
-    owner_id    uuid    not null references auth.users (id),
-    name        text    not null,
-    address     text,
+    id              uuid primary key default (gen_random_uuid()),
+    owner_id        uuid    not null references auth.users (id),
+    name            text    not null,
+    address         text,
     number_of_items integer not null,
-    notes       text,
+    notes           text,
     constraint name_not_empty check (length(trim(name)) > 0)
 );
 alter table orderline
@@ -325,16 +326,26 @@ create policy orderline_policy_select
     on orderline
     for select
 --     using (auth.uid() = owner_id or is_admin());
-    using (auth.uid() = owner_id );
+    using (auth.uid() = owner_id);
 
 drop policy if exists orderline_policy_all on orderline;
 create policy orderline_policy_all
     on orderline
     for all
-    using (auth.uid() = owner_id )
+    using (auth.uid() = owner_id)
     with check (auth.uid() = owner_id or is_admin());
 
 
-drop view orderline_statistics;
+
+drop view if exists orderline_statistics;
 create or replace view orderline_statistics as
-select sum(number_of_items) number_of_items, sum(number_of_items)*75 total_amount from orderline
+select 'Total' label, sum(number_of_items) number_of_items, 75 as amount_pr_item, sum(number_of_items) * 75 total_amount
+from orderline
+union
+select 'Dine' label, sum(number_of_items) number_of_items, 75 as amount_pr_item, sum(number_of_items) * 75 total_amount
+from orderline
+where auth.uid() = owner_id
+order by label desc;
+
+
+select * from orderline
