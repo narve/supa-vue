@@ -339,13 +339,22 @@ create policy orderline_policy_all
 
 drop view if exists orderline_statistics;
 create or replace view orderline_statistics as
-select 'Total' label, sum(number_of_items) number_of_items, 75 as amount_pr_item, sum(number_of_items) * 75 total_amount
+select 'Total'                   label,
+       sum(number_of_items)      number_of_items,
+       'brett' as                unit,
+       75      as                amount_pr_item,
+       sum(number_of_items) * 75 total_amount
 from orderline
 union
-select 'Dine' label, sum(number_of_items) number_of_items, 75 as amount_pr_item, sum(number_of_items) * 75 total_amount
+select 'Dine'                    label,
+       sum(number_of_items)      number_of_items,
+       'brett' as                unit,
+       75      as                amount_pr_item,
+       sum(number_of_items) * 75 total_amount
 from orderline
 where auth.uid() = owner_id
 order by label desc;
 
 
-select * from orderline
+select *
+from orderline

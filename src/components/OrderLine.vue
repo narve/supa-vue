@@ -47,7 +47,7 @@ const fetchStatistics = async () => {
 }
 
 const refresh = async () => {
-  const {error, data} = await supabase.from("orderline");
+  const {error, data} = await supabase.from("orderline").select().order('id');
   if (error) console.error(error);
   else if (data) {
     console.log(data);
