@@ -52,12 +52,13 @@ watchEffect(() => {
       <i class="material-icons">person</i>
     </RouterLink>
     <RouterLink to="home" v-if="router.currentRoute.value.name !== 'home'">
+      Hjem
       <i class="material-icons">home</i>
     </RouterLink>
   </div>
 
 
-  <h1>Dugnadsløsningen</h1>
+  <h1>Dugnad!</h1>
 
 
   <!--  <p>-->

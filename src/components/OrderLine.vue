@@ -64,6 +64,8 @@ const reset = async () => {
   item.value = {};
 }
 
+const num = (num?: number) => num?.toLocaleString("NO", {useGrouping: true});
+
 
 let statisticsIntervalRef: number;
 onBeforeMount(async () => {
@@ -92,19 +94,69 @@ label span {
   min-width: 8em;
 }
 
-th {
-  white-space: nowrap;
-  overflow: hidden;
+
+div.item, div.item div {
   text-overflow: ellipsis;
+  overflow: hidden;
 }
 
-.pull-right {
-  float: right;
+div.item div {
+  display: inline-block;
+  /*border-right: white 1px dashed;*/
+  margin-right: 1em;
+  padding-right: 1em;
+  /*outline: red 2px solid;*/
 }
 
-table {
-  width: 100%;
+div.item div:last-child {
+  display: none;
+  /*float: right;*/
 }
+
+.item button i {
+  font-size: smaller;
+}
+
+
+body {
+  padding: 0;
+}
+
+div.item {
+  /*width: 100vw;*/
+  border: antiquewhite solid 1px;
+  margin-bottom: 16px;
+  margin-right: 2px;
+  margin-left: 2px;
+  border-radius: 8px;
+  padding: 2px;
+  box-shadow: 2px 2px 2px brown;
+}
+
+div.item:hover {
+  cursor: pointer;
+}
+
+div.money.money.money {
+  white-space: nowrap;
+  display: block;
+}
+
+.items-header {
+  /*display: flex;*/
+  width: 100vw;
+  margin: auto auto 0.5em;
+}
+
+.items-header h3 {
+  font-size: large;
+}
+
+.items-header p {
+  font-size: small;
+  font-weight: lighter;
+}
+
 </style>
 
 <template>
@@ -114,15 +166,27 @@ table {
   <div class="statistics" v-if="!!supabase.auth.user()?.id"
        :style="{visibility: orderline_statistics.number_of_items ? 'visible': 'hidden'}"
   >
-    Totalt:
-    {{ orderline_statistics.number_of_items?.toLocaleString("NO", {useGrouping: true}) }} bestillinger,
-    {{ orderline_statistics.total_amount?.toLocaleString("NO", {useGrouping: true}) }} kr!
+    <div class="totals">
+      <div class="total" v-for="total of orderline_statistics">
+        <span class="label">{{total.label||'Totalt'}}: </span>
+        <span class="number_of_items">{{num(orderline_statistics.number_of_items)}}</span>
+        <span class="a">á 75kr =</span>
+        <span class="total_amount">{{ num(orderline_statistics.total_amount) }}</span>
+      </div>
+    </div>
+
+    <div>
+      Dine:
+      <span class="money">
+      {{ num(sums.number_of_items) }} brett á 75 = {{ num(sums.amount_to_pay) }} kr!
+    </span>
+    </div>
   </div>
 
   <form @submit.prevent="save">
     <fieldset>
       <legend>
-<!--        <i class="material-icons">add</i>-->
+        <!--        <i class="material-icons">add</i>-->
         <span v-if="item.id">Oppdater</span>
         <span v-if="!item.id">Registrer ny bestilling</span>
       </legend>
@@ -143,55 +207,41 @@ table {
         <input type="text" v-model.trim="item['notes']">
       </label>
       <span class="pull-right">
-        <button v-if="item.id" role="button" value="Avbryt" @click="reset">Avbryt</button>
+        <button v-if="item.id" role="button" @click="reset">Avbryt</button>
+        <button v-if="item.id" role="button" @click="delete(item.id)">Fjern</button>
         <button role="button">
-<!--        <i class="material-icons">add</i>-->
-          {{item.id? 'Oppdater' : 'Registrer'}}
+          {{ item.id ? 'Oppdater' : 'Registrer' }}
         </button>
-<!--        <input type="submit" :value="item.id ? 'Oppdater' : 'Registrer'">-->
       </span>
     </fieldset>
   </form>
 
-  <table>
-    <thead>
-    <tr>
-      <th>Navn</th>
-      <th>Addresse</th>
-      <th>Antall</th>
-<!--      <th>Notat</th>-->
-      <th>Å betale</th>
-      <th>
-        <!--        Handlinger-->
-        <!--                <button @click="refresh">Oppdater</button>-->
-        <i style="float:right" class="material-icons" @click="refresh">refresh</i>
-      </th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr v-for="item of items">
-      <td>{{ item.name }}</td>
-      <td>{{ item.address }}</td>
-      <td>{{ item.number_of_items }}</td>
-<!--      <td>{{ item.notes }}</td>-->
-      <td>{{ item.number_of_items * 75 }}</td>
-      <th>
+  <div class="items-header">
+    <div>
+      <h3>Dine bestillinger</h3>
+    </div>
+    <p>Velg en bestilling for å se/redigere</p>
+  </div>
 
-        <button @click="edit(item.id)"><i class="material-icons">edit</i></button>
-        <button @click="remove(item.id)"><i class="material-icons">delete</i></button>
-      </th>
-    </tr>
-    </tbody>
-    <tfoot>
-    <tr>
-      <th colspan="2">
-        Dine bestillinger:
-      </th>
-      <th>{{ sums.number_of_items }}</th>
-<!--      <th></th>-->
-      <th>{{ sums.amount_to_pay }}</th>
-    </tr>
-    </tfoot>
-  </table>
+  <div class="item" v-for="item of items" @click="edit(item.id)">
+    <div>{{ item.name }}</div>
+    <div>{{ item.address }}</div>
+    <!--    <div>{{ item.notes }}</div>-->
+    <div class="money">{{ item.number_of_items }} brett á 75kr = {{ item.number_of_items * 75 }}kr</div>
+    <!--    <div>{{ item.number_of_items * 75 }}</div>-->
+    <div>
+      <button @click="edit(item.id)"><i class="material-icons">edit</i></button>
+      <button @click="remove(item.id)"><i class="material-icons">delete</i></button>
+    </div>
+  </div>
+
+  <!--  <div>-->
+  <!--    <div >-->
+  <!--      Dine bestillinger:-->
+  <!--    </div>-->
+  <!--    <div>{{ sums.number_of_items }}</div>-->
+  <!--    &lt;!&ndash;      <th></th>&ndash;&gt;-->
+  <!--    <th>{{ sums.amount_to_pay }}</th>-->
+  <!--  </div>-->
 
 </template>
