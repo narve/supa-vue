@@ -63,7 +63,7 @@ export default {
 
   <form>
     <label>
-      Logg inn vha Facebook:
+      Logg inn vha Facebook ved å klikke her: 
       <button style="border: none; background-color: inherit;" @click.prevent="handleFacebookLogin">
         <img role="button" src="/src/assets/fb.png" alt="facebook" style="max-width: 2em; display: inline-block;">
       </button>

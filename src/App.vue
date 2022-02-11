@@ -1,17 +1,14 @@
 <script setup lang="ts">
-// This starter template is using Vue 3 <script setup> SFCs
-// Check out https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup
-import HelloWorld from './components/HelloWorld.vue'
 import DataComponent from "./components/DataComponent.vue";
 import {useRouter} from "vue-router";
-import {computed, onMounted, Ref, ref, watchEffect} from "vue";
+import {watchEffect} from "vue";
 import {supabase} from "./supa";
 import {store} from "./supa/store";
 import {getOpenApi} from "./supa/supa-openapi";
 import {promisedReactive} from './utils/promisedReactive';
 
 const router = useRouter();
-const routeList = ref(router.getRoutes());
+// const routeList = ref(router.getRoutes());
 
 store.user = supabase.auth.user()
 console.log('Setup: ', {user: store.user});
@@ -35,7 +32,7 @@ const dataList = promisedReactive<DataList[]>(
     }
 )
 
-const filteredRouteList = computed(() => routeList.value.filter(s => s.path.indexOf(":") < 0));
+// const filteredRouteList = computed(() => routeList.value.filter(s => s.path.indexOf(":") < 0));
 
 watchEffect(() => {
   if (dataList.error) {
@@ -48,7 +45,7 @@ watchEffect(() => {
 
   <div style="float:right; display:inline-block;">
     <RouterLink to="auth" v-if="router.currentRoute.value.name !== 'auth'">
-      <span v-if="!!supabase.auth.user()?.id">{{ supabase.auth.user().email }}</span>
+      <span v-if="!!supabase.auth.user()?.id">{{ supabase.auth.user()?.email }}</span>
       <i class="material-icons">person</i>
     </RouterLink>
     <RouterLink to="home" v-if="router.currentRoute.value.name !== 'home'">
@@ -109,12 +106,4 @@ a {
   /*outline: greenyellow 1px solid;*/
 }
 
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
-}
 </style>
