@@ -105,6 +105,43 @@ th {
 table {
   width: 100%;
 }
+
+.items {
+  outline: yellow 2px solid;
+  display: grid;
+  padding: 4px;
+  row-gap: 10px;
+  column-gap: 10px;
+
+  /*grid-template-columns: 2fr 2fr 1fr 2fr 2fr;*/
+  /*grid-template-columns: repeat(5, minmax(10px, 1fr));*/
+  grid-template-columns: minmax(100px, 1fr) minmax(100px, 1fr) minmax(6em, 1fr) minmax(6em, 1fr) minmax(4em, 1fr) ;
+}
+
+/*.header {*/
+/*  outline: red 2px solid;*/
+/*  display: grid;*/
+/*}*/
+
+/*.header div {*/
+/*  border: 1px #763f28 solid;*/
+/*  padding: 2px;*/
+/*}*/
+
+/*.body {*/
+/*  outline: red 2px solid;*/
+/*  display: flex;*/
+/*  flex-direction: column;*/
+/*}*/
+
+/*.body div {*/
+/*  border: 1px #763f28 solid;*/
+/*}*/
+
+/*.item {*/
+/*  display: flex;*/
+/*}*/
+
 </style>
 
 <template>
@@ -122,7 +159,7 @@ table {
   <form @submit.prevent="save">
     <fieldset>
       <legend>
-<!--        <i class="material-icons">add</i>-->
+        <!--        <i class="material-icons">add</i>-->
         <span v-if="item.id">Oppdater</span>
         <span v-if="!item.id">Registrer ny bestilling</span>
       </legend>
@@ -146,20 +183,52 @@ table {
         <button v-if="item.id" role="button" value="Avbryt" @click="reset">Avbryt</button>
         <button role="button">
 <!--        <i class="material-icons">add</i>-->
-          {{item.id? 'Oppdater' : 'Registrer'}}
+          {{ item.id ? 'Oppdater' : 'Registrer' }}
         </button>
-<!--        <input type="submit" :value="item.id ? 'Oppdater' : 'Registrer'">-->
+        <!--        <input type="submit" :value="item.id ? 'Oppdater' : 'Registrer'">-->
       </span>
     </fieldset>
   </form>
 
-  <table>
+
+  <div class="items">
+    <!--    <div class="header">-->
+    <div>Navn</div>
+    <div>Addresse</div>
+    <div>Antall</div>
+    <div>Å betale</div>
+    <div>
+      <i style="float:right" class="material-icons" @click="refresh">refresh</i>
+    </div>
+    <!--    </div>-->
+    <!--    <div class="body">-->
+    <template class="item" v-for="item of items">
+      <div>{{ item.name }}</div>
+      <div>{{ item.address }}</div>
+      <div>{{ item.number_of_items }}</div>
+      <!--      <div>{{ item.notes }}</div>-->
+      <div>{{ item.number_of_items * 75 }}</div>
+      <div>
+
+        <button @click="edit(item.id)"><i class="material-icons">edit</i></button>
+        <button @click="remove(item.id)"><i class="material-icons">delete</i></button>
+      </div>
+    </template>
+    <!--    </div>-->
+    <!--    <div class="footer">-->
+    <div>totalt etc</div>
+    <div>totalt etc</div>
+    <div>totalt etc</div>
+    <!--    </div>-->
+  </div>
+
+  <table v-if="false">
     <thead>
     <tr>
       <th>Navn</th>
       <th>Addresse</th>
       <th>Antall</th>
-<!--      <th>Notat</th>-->
+      <!--      <th>Notat</th>-->
       <th>Å betale</th>
       <th>
         <!--        Handlinger-->
@@ -173,7 +242,7 @@ table {
       <td>{{ item.name }}</td>
       <td>{{ item.address }}</td>
       <td>{{ item.number_of_items }}</td>
-<!--      <td>{{ item.notes }}</td>-->
+      <!--      <td>{{ item.notes }}</td>-->
       <td>{{ item.number_of_items * 75 }}</td>
       <th>
 
@@ -188,7 +257,7 @@ table {
         Dine bestillinger:
       </th>
       <th>{{ sums.number_of_items }}</th>
-<!--      <th></th>-->
+      <!--      <th></th>-->
       <th>{{ sums.amount_to_pay }}</th>
     </tr>
     </tfoot>
