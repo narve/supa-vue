@@ -44,6 +44,9 @@ watchEffect(() => {
 <template>
 
   <div style="float:right; display:inline-block;">
+    <RouterLink to="api" v-if="supabase.auth.user()?.email==='narve@dv8.no'">
+      <i class="material-icons">settings</i>
+    </RouterLink>
     <RouterLink to="auth" v-if="router.currentRoute.value.name !== 'auth'">
       <span v-if="!!supabase.auth.user()?.id">{{ supabase.auth.user()?.email }}</span>
       <i class="material-icons">person</i>

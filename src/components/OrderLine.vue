@@ -13,7 +13,7 @@ const sums = ref({
 const save = async () => {
   const user = supabase.auth.user();
   console.log('create new', {user}, JSON.stringify(item.value, null, ' '));
-  item.value.owner_id ||= user?.id;
+  // item.value.owner_id ||= user?.id; handled by database :) 
   const {error, data} = await supabase.from("orderline").upsert(item.value);
   if (error) {
     console.error(error.message);
@@ -36,12 +36,12 @@ const remove = async (args?: any) => {
   }
 }
 
-const fetchStatistics = async () => {
+const fetchStatistics = async (why?:string) => {
   const {error, data} = await supabase.from("orderline_statistics");
   if (error) {
     console.log("Statistics failed: ", error.message);
   } else {
-    console.log('got statistics: ', data);
+    console.log('got statistics because ' + (why||'reasons'), data);
     orderline_statistics.value = data as any[];
   }
 }
@@ -71,7 +71,17 @@ const num = (num?: number) => num?.toLocaleString("NO", {useGrouping: true});
 let statisticsIntervalRef: number;
 onBeforeMount(async () => {
   await refresh();
-  await fetchStatistics();
+  // await fetchStatistics('initial');
+  supabase
+      .from('orderline')
+      // .on('UPDATE', () => fetchStatistics('update'))
+      // .on('INSERT', () => console.log('insert'))
+      // .on('DELETE', () => console.log('delete'))
+      .on('*', () => fetchStatistics('something happened'))
+      .subscribe( () => fetchStatistics('subscribe'));
+
+  // Note that we want an interval in addition to subscription... since 
+  // RLS hides other peoples updates from us. 
   statisticsIntervalRef = window.setInterval(fetchStatistics, 10000);
 })
 onBeforeUnmount(async () => {

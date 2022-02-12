@@ -7,6 +7,7 @@ import AuthComponent from './components/Auth.vue';
 import DataComponent from './components/DataComponent.vue';
 import PasswordRecovery from './components/PasswordRecovery.vue';
 import OrderLine from "./components/OrderLine.vue";
+import DataTypes from "./components/DataTypes.vue";
 import {supabase} from "./supa";
 
 // import "./assets/main.css"
@@ -41,6 +42,11 @@ const myRoutes: RouterOptions = {
 			
 		},
 		{
+			path: "/api",
+			name: "data-types",
+			component: DataTypes,
+		},
+		{
 			path: "/auth",
 			name: "auth",
 			// alias: "/home",
@@ -49,7 +55,7 @@ const myRoutes: RouterOptions = {
 			component: AuthComponent,
 		},
 		{
-			path: "/show/:name",
+			path: "/api/:name",
 			// name: 'show-data',
 			component: DataComponent,
 		},

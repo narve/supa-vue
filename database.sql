@@ -321,6 +321,14 @@ create table orderline
 alter table orderline
     enable row level security;
 
+alter table orderline alter column owner_id set default auth.uid();
+
+alter publication supabase_realtime add table orderline;
+
+update orderline set number_of_items = number_of_items +1 where id = '2f0b98fc-083c-4458-9014-b64d2fce6674' ;
+select * from orderline
+
+
 drop policy if exists orderline_policy_select on orderline;
 create policy orderline_policy_select
     on orderline
@@ -335,7 +343,8 @@ create policy orderline_policy_all
     using (auth.uid() = owner_id)
     with check (auth.uid() = owner_id or is_admin());
 
-
+comment on table assignment is
+$$Lekser$$;
 
 drop view if exists orderline_statistics;
 create or replace view orderline_statistics as
