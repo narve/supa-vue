@@ -2,19 +2,13 @@
 
 import {onBeforeMount, ref} from "vue";
 import {supabase} from "../supa";
-
-interface KVP {
-  name: string;
-  value: any;
-}
+import {KVP, toKVP} from "../supa/supa-openapi";
 
 const paths = ref([] as KVP[]);
 const getPaths = ref([] as KVP[]);
 const items = ref(['hei'] as any[]);
 const api = ref({} as any);
 
-const toKVP = (obj: any): { name: string, value: any }[] => Object.keys(obj)
-    .map(k => ({name: k, value: obj[k]}));
 
 const output = (obj: any) => JSON.stringify(obj, null, ' ');
 
@@ -49,7 +43,10 @@ const getDefinition = (api:any, schemaRef:string) => {
   <h1>Data-types</h1>
   <div v-for="kvp in getPaths">
 <!--    {{ kvp.name }} => {{output(kvp.name) }}-->
-    <router-link :to="'/api' + kvp.name">{{kvp.name.substring(1)}}</router-link>
+    <router-link :to="'/api' + kvp.name">
+      {{ getDefinition(api, getSchemaRef(kvp))?.description || kvp.name.substring(1)}}
+<!--      := {{kvp.value.description}}-->
+    </router-link>
 <!--    <pre>{{ getSchemaRef(kvp)}}</pre>-->
 <!--    <pre>{{ getDefinition(api, getSchemaRef(kvp))}}</pre>-->
   </div>

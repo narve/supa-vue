@@ -70,6 +70,20 @@ export const colVal = col => {
 	return col;
 };
 
+
+
+/// REFACTORING: 
+
+
+export interface KVP {
+	name: string;
+	value: any;
+}
+
+export const toKVP = (obj: any): { name: string, value: any }[] => Object.keys(obj)
+	.map(k => ({name: k, value: obj[k]}));
+
+
 //
 // export const titleColumn = (tab, id) => {
 //     const remoteTable = template.data.definitions[tab];

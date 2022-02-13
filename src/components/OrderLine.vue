@@ -36,12 +36,12 @@ const remove = async (args?: any) => {
   }
 }
 
-const fetchStatistics = async (why?:string) => {
+const fetchStatistics = async (why?: string) => {
   const {error, data} = await supabase.from("orderline_statistics");
   if (error) {
     console.log("Statistics failed: ", error.message);
   } else {
-    console.log('got statistics because ' + (why||'reasons'), data);
+    console.log('got statistics because ' + (why || 'reasons'), data);
     orderline_statistics.value = data as any[];
   }
 }
@@ -78,11 +78,11 @@ onBeforeMount(async () => {
       // .on('INSERT', () => console.log('insert'))
       // .on('DELETE', () => console.log('delete'))
       .on('*', () => fetchStatistics('something happened'))
-      .subscribe( () => fetchStatistics('subscribe'));
+      .subscribe(() => fetchStatistics('subscribe'));
 
   // Note that we want an interval in addition to subscription... since 
   // RLS hides other peoples updates from us. 
-  statisticsIntervalRef = window.setInterval(fetchStatistics, 10000);
+  statisticsIntervalRef = window.setInterval(() => fetchStatistics('timer'), 10000);
 })
 onBeforeUnmount(async () => {
   window.clearInterval(statisticsIntervalRef);
@@ -171,7 +171,7 @@ div.money.money.money {
 .totals {
   display: grid;
   max-width: 30em;
-  grid-template-columns: minmax(2em, 5em) minmax(2em, 3em) minmax(2em, 3em) minmax(2em, 5em)  minmax(2em, 5em) minmax(2em, 5em) ;
+  grid-template-columns: minmax(2em, 5em) minmax(2em, 3em) minmax(2em, 3em) minmax(2em, 5em)  minmax(2em, 5em) minmax(2em, 5em);
 }
 
 .totals span {
@@ -193,9 +193,9 @@ div.money.money.money {
   >
     <div class="totals">
       <template class="total" v-for="total of orderline_statistics">
-        <span class="label">{{ total.label}}: </span>
+        <span class="label">{{ total.label }}: </span>
         <span class="number_of_items">{{ num(total.number_of_items) }}</span>
-        <span class="unit">{{ total.unit ||'brett' }}</span>
+        <span class="unit">{{ total.unit || 'brett' }}</span>
         <span class="a">á 75kr</span>
         <span class="eq">=</span>
         <span class="total_amount">{{ num(total.total_amount) }}kr</span>

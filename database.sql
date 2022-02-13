@@ -320,6 +320,7 @@ create table orderline
 );
 alter table orderline
     enable row level security;
+comment on table orderline is 'Bestillinger';
 
 alter table orderline alter column owner_id set default auth.uid();
 

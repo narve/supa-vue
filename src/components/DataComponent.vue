@@ -4,6 +4,7 @@ import {fetchDataAsync, supabase} from "../supa";
 import {useRouter} from "vue-router";
 import {ref, watch} from "vue";
 import {Definitions} from "../supa/SupaTypes";
+import {KVP} from "../supa/supa-openapi";
 
 const tableName = ref('...')
 
@@ -116,17 +117,83 @@ const deleteRow = (id: string) => {
       }, (err: any) => alert(err.message));
 }
 
-// const getOptions = (prop: any) => {
-//   console.log('options for ', prop.name, selectors, selectors[prop.name]);
-//   return [1, 2, 3].map(i => ({
-//     id: "id_" + i,
-//     title: "value number " + i,
-//   }));
-// }
+
+// --- REFACTORING: 
+
+// OpenAPI
+
+// data:Ref<any> is OpenAPI spec
+// tableName is name of relation/definition
+
+
+const currentItem = ref(null as any);
+
+const allProps = ref(null as any);
+const editableProps = ref([] as KVP[]);
+
+const edit = async (item: any) => {
+  console.log('Now editing: ', item);
+  currentItem.value = Object.assign({}, item);
+}
+
+const save = async () => {
+  const user = supabase.auth.user();
+  console.log('create new', {user}, JSON.stringify(currentItem.value, null, ' '));
+  // item.value.owner_id ||= user?.id; handled by database :) 
+  const {error, data} = await supabase.from("orderline").upsert(currentItem.value);
+  if (error) {
+    console.error(error.message);
+    alert('Error: ' + error.message);
+  } else {
+    console.log("Saved: ", {data});
+    currentItem.value = null;
+    // await refresh();
+  }
+};
+
+const remove = async (item: any) => {
+  console.log('remove', item);
+  const {error, data} = await supabase.from("orderline").delete().eq('id', item.id);
+  if (error) console.error(error);
+  else {
+    console.log(data);
+    currentItem.value = null;
+    // await refresh();
+    // await fetchStatistics();
+  }
+}
 
 </script>
 <template>
 
+  <div>
+    <button @click="currentItem = {}">Registrer ny </button>
+  </div>
+  
+  <div v-if="currentItem">
+    <p>currentItem: {{currentItem}}</p>
+    <p>editableColumns: {{editableColumns}}</p>
+    <div v-for="prop of editableColumns">
+      <label :for="'input_'+prop">{{prop.name}}</label>
+      <input id="'input_'+prop" :placeholder="prop.name">
+    </div>
+    <div>
+      <button @click="currentItem = null" >
+        Avbryt
+      </button>
+      <button v-if="currentItem.id" @click="save(currentItem)" >
+        Oppdater
+      </button>
+      <button v-if="currentItem.id" @click="remove(currentItem)" >
+        Slett
+      </button>
+      <button v-if="!currentItem.id" @click="save(currentItem)" >
+        Registrer
+      </button>
+    </div>
+  </div>
+  
+  
   <div>
     <h2>{{ toPluralTitle(tableName) }}</h2>
     <table>
@@ -146,14 +213,14 @@ const deleteRow = (id: string) => {
           {{ cellToString(row, column) }}
         </td>
         <td>
-          <button @click="deleteRow(row.id)">DELETE</button>
+          <button @click.prevent="edit(row)"><i class="material-icons">edit</i></button>
         </td>
       </tr>
       </tbody>
     </table>
   </div>
 
-  <div>
+  <div v-if="false">
     <form @submit.prevent="handleCreate">
       <fieldset>
         <legend>Create new {{ tableName }}</legend>
