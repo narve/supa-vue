@@ -2,39 +2,13 @@
 import {onBeforeMount, onBeforeUnmount, Ref, ref, UnwrapRef} from "vue";
 import {supabase} from "../supa";
 
+/// Statistics 
+
 const orderline_statistics = ref([] as any[]);
-const items = ref([] as any[]);
-const item: Ref<UnwrapRef<any>> = ref({});
 const sums = ref({
   amount_to_pay: 0,
   number_of_items: 0
 });
-
-const save = async () => {
-  const user = supabase.auth.user();
-  console.log('create new', {user}, JSON.stringify(item.value, null, ' '));
-  // item.value.owner_id ||= user?.id; handled by database :) 
-  const {error, data} = await supabase.from("orderline").upsert(item.value);
-  if (error) {
-    console.error(error.message);
-    alert('Error: ' + error.message);
-  } else {
-    console.log("Saved: ", {data});
-    item.value = {};
-    await refresh();
-  }
-};
-
-const remove = async (args?: any) => {
-  console.log('remove', args);
-  const {error, data} = await supabase.from("orderline").delete().eq('id', args);
-  if (error) console.error(error);
-  else {
-    console.log(data);
-    await refresh();
-    await fetchStatistics();
-  }
-}
 
 const fetchStatistics = async (why?: string) => {
   const {error, data} = await supabase.from("orderline_statistics");
@@ -45,6 +19,10 @@ const fetchStatistics = async (why?: string) => {
     orderline_statistics.value = data as any[];
   }
 }
+
+
+/// Item list
+const items = ref([] as any[]);
 
 const refresh = async () => {
   const {error, data} = await supabase.from("orderline").select().order('id');
@@ -57,15 +35,64 @@ const refresh = async () => {
   }
 }
 
-const edit = async (id: string) => {
-  item.value = Object.assign({}, items.value.find(s => s.id === id));
+
+/// Active item
+
+const currentItem = ref({} as any);
+
+const startNewItem = () => {
+  currentItem.value = {id: 'new'};
+}
+
+const edit = (id: string) => {
+  currentItem.value = Object.assign({}, items.value.find(s => s.id === id));
+  console.log('edit item: ', id, currentItem.value.id);
 }
 
 const reset = async () => {
-  item.value = {};
+  currentItem.value = null;
 }
 
-const num = (num?: number) => num?.toLocaleString("NO", {useGrouping: true});
+const save = async () => {
+  const user = supabase.auth.user();
+  console.log('Save: ', {user}, JSON.stringify(currentItem.value, null, ' '));
+  // item.value.owner_id ||= user?.id; handled by database :) 
+  const {error, data} = await supabase.from("orderline").upsert(currentItem.value);
+  if (error) {
+    console.error(error.message);
+    alert('Error: ' + error.message);
+  } else {
+    console.log("Saved: ", {data});
+    currentItem.value = null;
+    await refresh();
+  }
+};
+
+const remove = async (args?: any) => {
+  console.log('remove', args);
+  const {error, data} = await supabase.from("orderline").delete().eq('id', args);
+  if (error) console.error(error);
+  else {
+    console.log(data);
+    currentItem.value = null;
+    await refresh();
+    await fetchStatistics();
+  }
+}
+
+
+/// **** Active row
+
+
+const activeRow = ref(null as any);
+
+const setActiveRow = (theItem: any) => {
+  currentItem.value = null;
+  activeRow.value = theItem;
+}
+
+
+const formatNumber = (num?: number) => num?.toLocaleString("NO", {useGrouping: true});
 
 
 let statisticsIntervalRef: number;
@@ -82,14 +109,22 @@ onBeforeMount(async () => {
 
   // Note that we want an interval in addition to subscription... since 
   // RLS hides other peoples updates from us. 
-  statisticsIntervalRef = window.setInterval(() => fetchStatistics('timer'), 10000);
-})
+  // statisticsIntervalRef = window.setInterval(() => fetchStatistics('timer'), 10000);
+});
+
+
 onBeforeUnmount(async () => {
   window.clearInterval(statisticsIntervalRef);
 })
+
 </script>
 
 <style scoped>
+
+
+body {
+  padding: 0;
+}
 
 button {
   margin-left: 2px;
@@ -105,13 +140,16 @@ label span {
   min-width: 8em;
 }
 
+div.item.active {
+  outline: #24b47e 3px solid;
+}
 
 div.item, div.item div {
   text-overflow: ellipsis;
   overflow: hidden;
 }
 
-div.item div {
+div.item div, div.item button {
   display: inline-block;
   /*border-right: white 1px dashed;*/
   margin-right: 1em;
@@ -119,19 +157,15 @@ div.item div {
   /*outline: red 2px solid;*/
 }
 
-div.item div:last-child {
-  display: none;
-  /*float: right;*/
+div.item :last-child {
+  /*display: none;*/
+  float: right;
 }
 
 .item button i {
   font-size: smaller;
 }
 
-
-body {
-  padding: 0;
-}
 
 div.item {
   /*width: 100vw;*/
@@ -150,8 +184,11 @@ div.item:hover {
 
 div.money.money.money {
   white-space: nowrap;
-  display: block;
+  display: inline-block;
 }
+
+
+/*********** Items header *********/
 
 .items-header {
   /*display: flex;*/
@@ -167,6 +204,9 @@ div.money.money.money {
   font-size: small;
   font-weight: lighter;
 }
+
+/***********Totals *********/
+
 
 .totals {
   display: grid;
@@ -194,60 +234,73 @@ div.money.money.money {
     <div class="totals">
       <template class="total" v-for="total of orderline_statistics">
         <span class="label">{{ total.label }}: </span>
-        <span class="number_of_items">{{ num(total.number_of_items) }}</span>
+        <span class="number_of_items">{{ formatNumber(total.number_of_items) }}</span>
         <span class="unit">{{ total.unit || 'brett' }}</span>
         <span class="a">á 75kr</span>
         <span class="eq">=</span>
-        <span class="total_amount">{{ num(total.total_amount) }}kr</span>
+        <span class="total_amount">{{ formatNumber(total.total_amount) }}kr</span>
       </template>
     </div>
 
   </div>
 
-  <form @submit.prevent="save">
+  <p>Current item? {{ currentItem != null }}</p>
+
+  <form>
+    <button v-if="currentItem == null" @click="startNewItem()">Registrer bestilling</button>
+  </form>
+
+  <form @submit.prevent="save" v-if="currentItem != null">
     <fieldset>
       <legend>
         <!--        <i class="material-icons">add</i>-->
-        <span v-if="item.id">Oppdater</span>
-        <span v-if="!item.id">Registrer ny bestilling</span>
+        <span v-if="currentItem.id">Oppdater</span>
+        <span v-if="!currentItem.id">Registrer ny bestilling</span>
       </legend>
       <label>
         <span>Navn:</span>
-        <input type="text" v-model.trim="item['name']" required>
+        <input type="text" v-model.trim="currentItem['name']" required>
       </label>
       <label>
         <span>Adresse:</span>
-        <input type="text" v-model.trim="item['address']">
+        <input type="text" v-model.trim="currentItem['address']">
       </label>
       <label>
         <span>Antall:</span>
-        <input type="number" v-model="item['number_of_items']" required>
+        <input type="number" v-model="currentItem['number_of_items']" required>
       </label>
       <label>
         <span>Kommentarer:</span>
-        <input type="text" v-model.trim="item['notes']">
+        <input type="text" v-model.trim="currentItem['notes']">
       </label>
       <span class="pull-right">
-        <button v-if="item.id" role="button" @click="reset">Avbryt</button>
-        <button v-if="item.id" role="button" @click="remove(item.id)">Fjern</button>
+        <button role="button" @click="reset">Avbryt</button>
+        <button v-if="currentItem.id" role="button" @click="remove(currentItem.id)">Fjern</button>
         <button role="button">
-          {{ item.id ? 'Oppdater' : 'Registrer' }}
+          {{ currentItem.id ? 'Oppdater' : 'Registrer' }}
         </button>
       </span>
     </fieldset>
   </form>
 
-  <div class="items-header">
-    <div>
-      <h3>Dine bestillinger</h3>
-    </div>
-    <p>Velg en bestilling for å se/redigere</p>
-  </div>
+  <div class="item-list" v-if="!currentItem">
 
-  <div class="item" v-for="item of items" @click="edit(item.id)">
-    <div>{{ item.name }}</div>
-    <div>{{ item.address }}</div>
-    <div class="money">{{ item.number_of_items }} brett á 75kr = {{ item.number_of_items * 75 }}kr</div>
+    <div class="items-header">
+      <div>
+        <h3>Dine bestillinger</h3>
+      </div>
+      <p>Velg en bestilling for å se/redigere</p>
+    </div>
+
+    <div :class="{item:true, active:item.id === activeRow?.id}" v-for="item of items" @click="setActiveRow(item)">
+      <div>{{ item.name }}</div>
+      <div>{{ item.address }}</div>
+      <div class="money">{{ item.number_of_items }} brett á 75kr = {{ item.number_of_items * 75 }}kr</div>
+      <!--      <p>active: {{ item.id === activeRow?.id }}</p>-->
+      <div class="actions" v-if="item.id === activeRow?.id">
+        <button @click="edit(item.id)"><i class="material-icons">edit</i></button>
+      </div>
+    </div>
   </div>
 
 </template>
