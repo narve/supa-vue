@@ -181,13 +181,13 @@ const remove = async (item: any) => {
       <button @click="currentItem = null" >
         Avbryt
       </button>
-      <button v-if="currentItem.id" @click="save(currentItem)" >
+      <button v-if="currentItem.id" @click="save()" >
         Oppdater
       </button>
       <button v-if="currentItem.id" @click="remove(currentItem)" >
         Slett
       </button>
-      <button v-if="!currentItem.id" @click="save(currentItem)" >
+      <button v-if="!currentItem.id" @click="save()" >
         Registrer
       </button>
     </div>

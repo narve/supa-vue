@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {onBeforeMount, onBeforeUnmount, Ref, ref, UnwrapRef} from "vue";
+import {onBeforeMount, onBeforeUnmount, ref, UnwrapRef} from "vue";
 import {supabase} from "../supa";
 
 /// Statistics 
