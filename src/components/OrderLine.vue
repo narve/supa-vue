@@ -38,15 +38,18 @@ const refresh = async () => {
 
 /// Active item
 
-const currentItem = ref({} as any);
+const currentItem = ref(null as any);
 
 const startNewItem = () => {
-  currentItem.value = {id: 'new'};
+  console.log('new item');
+  currentItem.value = {};
 }
 
 const edit = (id: string) => {
+  // startNewItem();
   currentItem.value = Object.assign({}, items.value.find(s => s.id === id));
-  console.log('edit item: ', id, currentItem.value.id);
+  // currentItem.value = {};
+  console.log('edit item: ', currentItem.value.id);
 }
 
 const reset = async () => {
@@ -87,6 +90,7 @@ const remove = async (args?: any) => {
 const activeRow = ref(null as any);
 
 const setActiveRow = (theItem: any) => {
+  console.log('active row: ', theItem);
   currentItem.value = null;
   activeRow.value = theItem;
 }
@@ -152,8 +156,8 @@ div.item, div.item div {
 div.item div, div.item button {
   display: inline-block;
   /*border-right: white 1px dashed;*/
-  margin-right: 1em;
-  padding-right: 1em;
+  /*margin-right: 1em;*/
+  /*padding-right: 1em;*/
   /*outline: red 2px solid;*/
 }
 
@@ -244,13 +248,13 @@ div.money.money.money {
 
   </div>
 
-  <p>Current item? {{ currentItem != null }}</p>
+<!--  <p>Current item? {{ currentItem !== null }}</p>-->
 
   <form>
-    <button v-if="currentItem == null" @click="startNewItem()">Registrer bestilling</button>
+    <button v-if="currentItem === null" @click="startNewItem()">Registrer bestilling</button>
   </form>
 
-  <form @submit.prevent="save" v-if="currentItem != null">
+  <form @submit.prevent="save" v-if="currentItem !== null">
     <fieldset>
       <legend>
         <!--        <i class="material-icons">add</i>-->
@@ -283,7 +287,7 @@ div.money.money.money {
     </fieldset>
   </form>
 
-  <div class="item-list" v-if="!currentItem">
+  <div class="item-list" v-if="currentItem === null">
 
     <div class="items-header">
       <div>
@@ -292,13 +296,13 @@ div.money.money.money {
       <p>Velg en bestilling for å se/redigere</p>
     </div>
 
-    <div :class="{item:true, active:item.id === activeRow?.id}" v-for="item of items" @click="setActiveRow(item)">
+    <div :class="{item:true, active:item.id === activeRow?.id}" v-for="item of items" @click="setActiveRow(item)" :key="item.id">
       <div>{{ item.name }}</div>
       <div>{{ item.address }}</div>
       <div class="money">{{ item.number_of_items }} brett á 75kr = {{ item.number_of_items * 75 }}kr</div>
       <!--      <p>active: {{ item.id === activeRow?.id }}</p>-->
       <div class="actions" v-if="item.id === activeRow?.id">
-        <button @click="edit(item.id)"><i class="material-icons">edit</i></button>
+        <button @click.stop="edit(item.id)"><i class="material-icons">edit</i></button>
       </div>
     </div>
   </div>
