@@ -1,9 +1,10 @@
-<script lang="ts">
-export default {
-  name: "Home",
-  path: "/home",
-  alias: "/",
-}
+<script setup lang="ts">
+// export default {
+//   name: "Home",
+//   path: "/home",
+//   alias: "/",
+// }
+  import {modules} from '../main'
 </script>
 
 <template>
@@ -14,7 +15,7 @@ export default {
   <p>
     Please select a module: 
   </p>
-  <ul>
-    <router-link to="grades">Grades</router-link>
+  <ul v-for="m of modules" :key="m.name">
+    <router-link :to="'/'+m.name">{{m.title}}</router-link>
   </ul>
 </template>

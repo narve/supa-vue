@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {onBeforeMount, onBeforeUnmount, ref} from "vue";
-import {supabase} from "../supa";
-import {store} from "../supa/store";
+import {supabase} from "../../supa";
+import {store} from "../../supa/store";
 
 /// Statistics 
 
@@ -103,7 +103,7 @@ const formatNumber = (num?: number) => num?.toLocaleString("NO", {useGrouping: t
 let statisticsIntervalRef: number;
 onBeforeMount(async () => {
   await refresh();
-  // await fetchStatistics('initial');
+  await fetchStatistics('initial');
   supabase
       .channel('orderline')
       // .on('UPDATE', () => fetchStatistics('update'))

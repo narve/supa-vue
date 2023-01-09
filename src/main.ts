@@ -6,32 +6,14 @@ import {createRouter, createWebHistory, RouterOptions} from 'vue-router';
 import AuthComponent from './components/Auth.vue';
 import DataComponent from './components/DataComponent.vue';
 // import PasswordRecovery from './components/PasswordRecovery.vue';
-import OrderLine from "./components/OrderLine.vue";
+import OrderLine from "./modules/bee/OrderLine.vue";
 import DataTypes from "./components/DataTypes.vue";
 import HomeComponent from "./components/Home.vue";
 import {supabase} from "./supa";
 
 import GradeModule from './modules/grades'
-// import GradeHome from './modules/grades/GradeHome.vue'
-
-// import "./assets/main.css"
-
-// interface SmartComponent {
-// 	name: string;
-// 	path: string;
-// 	alias?: string;
-// }
-//
-// const components: SmartComponent[] = [
-// 	AboutComponent, SupaConfig, AuthComponent
-// ];
-//
-// const ToRoute = (sc: SmartComponent) => ({
-// 	name: sc.name,
-// 	path: sc.path,
-// 	// alias: sc.alias,
-// 	component: sc,
-// });
+import BeeModule from './modules/bee'
+import GenericModule from './modules/api'
 
 
 const myRoutes: RouterOptions = {
@@ -83,7 +65,7 @@ const myRoutes: RouterOptions = {
 const app = createApp(App);
 export const router = createRouter(myRoutes);
 
-const modules = [GradeModule]
+export const modules = [GradeModule, BeeModule, GenericModule]
 
 modules.forEach(m => m.routes.forEach(r=>router.addRoute(r)))
 

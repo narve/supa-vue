@@ -14,11 +14,11 @@ const output = (obj: any) => JSON.stringify(obj, null, ' ');
 
 const fetchOpenApi = async () => {
 
-  const toInclude = [
-    'question', 'answer', 'student'
-  ]
+  // const toInclude = [
+  //   'question', 'answer', 'student'
+  // ]
 
-  const {data, error} = await supabase.from('').select() as any;
+  const {data} = await supabase.from('').select() as any;
   console.log(data);
   api.value = data;
   items.value = toKVP(data.definitions);
@@ -26,7 +26,7 @@ const fetchOpenApi = async () => {
   getPaths.value = paths.value
       .filter(kvp => kvp.value['get'])
       .filter(kvp => kvp.name !== '/')
-      .filter(kvp => toInclude.includes(kvp.name.substring(1)))
+      // .filter(kvp => toInclude.includes(kvp.name.substring(1)))
   // .filter(kvp => kvp.value.)
 
 
