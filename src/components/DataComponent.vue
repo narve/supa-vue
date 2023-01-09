@@ -8,7 +8,6 @@ import {KVP} from "../supa/supa-openapi";
 
 const tableName = ref('...')
 
-const router = useRouter();
 
 const newObject = ref({} as any);
 

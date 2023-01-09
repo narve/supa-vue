@@ -1,4 +1,4 @@
-<script lang="ts">
+<script  >
 
 import {ref} from "vue"
 import {supabase} from "../supa"
@@ -45,10 +45,11 @@ export default {
     const handleFacebookLogin = async () => {
       try {
         loading.value = true
-        const {user, session, error} = await supabase.auth.signIn({
+        const {data, error} = await supabase.auth.signInWithOAuth({
           provider: 'facebook',
         });
-        console.log('Response from sign-in: ', {user, session, error});
+        const {provider} = data
+        console.log('Response from sign-in: ', {provider});
         if (error)
           alert(error.message);
       } finally {

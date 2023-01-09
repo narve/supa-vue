@@ -1,8 +1,36 @@
+<script setup lang="ts">
+
+import {ref} from 'vue';
+import {supabase} from "../../supa";
+
+const items = ref([] as any[]);
+
+const fetchData = async () => {
+  const {data, error} = await supabase.from('student').select();
+  items.value = data as any[];
+  if (error)
+    console.log('error fetching: ', error);
+}
+
+const newStudent = ref('')
+
+const addStudent = async () => {
+  console.log('add student: ', newStudent.value)
+  await supabase.from('student').insert({name: newStudent.value})
+  await fetchData()
+  return false;
+}
+
+
+fetchData();
+
+</script>
+
 <template>
 
   <h1>Students</h1>
 
-  <button @click="fetch()">FETCH</button>
+  <button @click="fetchData">FETCH</button>
 
   <ul>
     <li v-for="item of items" :key="item">
@@ -24,33 +52,3 @@
 
 </template>
 
-<script lang="ts" setup>
-
-import {ref} from 'vue';
-import {supabase} from "../../supa";
-
-const items = ref([] as any[]);
-
-const fetch = async () => {
-  const {data, error} = await supabase.from('student').select();
-  items.value = data as any[];
-  if (error)
-    console.log('error fetching: ', error);
-}
-
-fetch();
-
-const newStudent = ref('')
-
-const addStudent = async () => {
-  console.log('add student: ', newStudent.value)
-  await supabase.from('student').insert({name: newStudent.value})
-  await fetch()
-  return false;
-}
-
-</script>
-
-<style scoped>
-
-</style>

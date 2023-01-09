@@ -57,11 +57,11 @@ supabase.auth.getSession().then(({data, error}) => {
 <template>
 
   <div style="float:right; display:inline-block;">
-    <RouterLink to="/api" >
+    <RouterLink to="/api">
       <i class="material-icons">settings</i>
     </RouterLink>
     <RouterLink to="/auth" v-if="router.currentRoute.value.name !== 'auth'">
-<!--      <span v-if="!!store.session">{{ store.session }}</span>-->
+      <!--      <span v-if="!!store.session">{{ store.session }}</span>-->
       <i class="material-icons">person</i>
     </RouterLink>
     <RouterLink to="/" v-if="router.currentRoute.value.name !== 'home'">
@@ -71,7 +71,7 @@ supabase.auth.getSession().then(({data, error}) => {
   </div>
 
 
-<!--  <h1>DV8!</h1>-->
+  <!--  <h1>DV8!</h1>-->
 
 
   <!--  <p>-->
@@ -97,7 +97,7 @@ supabase.auth.getSession().then(({data, error}) => {
 
   <section>
     <!--    <h1>{{ $route.name }}</h1>-->
-<!--    <Suspense>-->
+    <!--    <Suspense>-->
     <router-view></router-view>
 
     <!--    </Suspense>-->
@@ -118,10 +118,9 @@ supabase.auth.getSession().then(({data, error}) => {
   }
 
 
-  .page{
+  .page {
     break-before: page;
   }
-
 
 
 }

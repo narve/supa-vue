@@ -1,65 +1,12 @@
-<template>
-
-  <h1>Students</h1>
-
-      <button @click="fetch()">(Last data på nytt)</button>
-
-      <h2>Spørsmål</h2>
-
-
-      <table>
-        <thead>
-        <tr>
-          <th>Id</th>
-          <th>Oppgave</th>
-          <th>Maks poeng</th>
-          <th>Kommentar</th>
-          <th></th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr v-for="q in questions" :key="q.id">
-          <th>{{ q.id }}</th>
-          <td>
-            <input v-model="q.name">
-          </td>
-          <td>
-            <input v-model="q.points" min="0" type="number">
-          </td>
-          <td>
-            <input name="comments" v-model="q.comments">
-          </td>
-        </tr>
-        <tr>
-          <th>(Nytt spørsmål)</th>
-          <td>
-            <input v-model="newItem.name">
-          </td>
-          <td>
-            <input v-model="newItem.points" min="0" type="number">
-          </td>
-          <td>
-            <input name="newItem.comments" v-model="newItem.comments">
-          </td>
-        </tr>
-        </tbody>
-      </table>
-
-
-      <input type="submit" value="Lagre" @click.prevent="save">
-
-
-</template>
-
-<script lang="ts" setup>
+<script setup lang="ts">
 
 import {ref} from 'vue';
 import {supabase} from "../../supa";
 
 const questions = ref([] as any[]);
-const newItem = ref({name:'', points: 0, comments: ''})
+const newItem = ref({name: '', points: 0, comments: ''})
 
-const fetch = async () => {
+const fetchData = async () => {
   const {data, error} = await supabase.from('question').select();
   questions.value = data as any[];
   if (error)
@@ -67,7 +14,7 @@ const fetch = async () => {
 
 }
 
-fetch()
+fetchData()
 
 
 const save = async () => {
@@ -83,16 +30,65 @@ const save = async () => {
     await supabase.from('question').update(u).match({id: u.id})
   }
 
-  if(newItem.value.name && newItem.value.points>0) {
+  if (newItem.value.name && newItem.value.points > 0) {
     await supabase.from('question').insert(newItem.value)
-    newItem.value = {name:'', points: 0, comments: ''}
+    newItem.value = {name: '', points: 0, comments: ''}
   }
 
-  await fetch()
+  await fetchData()
 
 }
 
 </script>
+
+<template>
+
+  <h2>Spørsmål</h2>
+  <button @click="fetchData">(Last data på nytt)</button>
+
+  <table>
+    <thead>
+    <tr>
+      <th>Id</th>
+      <th>Oppgave</th>
+      <th>Maks poeng</th>
+      <th>Kommentar</th>
+      <th></th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr v-for="q in questions" :key="q.id">
+      <th>{{ q.id }}</th>
+      <td>
+        <input v-model="q.name">
+      </td>
+      <td>
+        <input v-model="q.points" min="0" type="number">
+      </td>
+      <td>
+        <input name="comments" v-model="q.comments">
+      </td>
+    </tr>
+    <tr>
+      <th>(Nytt spørsmål)</th>
+      <td>
+        <input v-model="newItem.name">
+      </td>
+      <td>
+        <input v-model="newItem.points" min="0" type="number">
+      </td>
+      <td>
+        <input name="newItem.comments" v-model="newItem.comments">
+      </td>
+    </tr>
+    </tbody>
+  </table>
+
+
+  <input type="submit" value="Lagre" @click.prevent="save">
+
+
+</template>
 
 <style scoped>
 
