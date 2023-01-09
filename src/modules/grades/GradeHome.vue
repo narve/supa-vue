@@ -2,7 +2,7 @@
 
   <h1>Grades</h1>
 
-  <nav>
+  <nav class="module">
     <ul>
       <router-link to="/grades/students">Students</router-link>
     </ul>
