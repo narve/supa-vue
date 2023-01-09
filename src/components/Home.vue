@@ -7,8 +7,9 @@ export default {
 </script>
 
 <template>
+  <h1>DV8 - Apps</h1>
   <p>
-    This is the home page of this wonderful app. 
+    This is the home page of this wonderful site.
   </p>
   <p>
     Please select a module: 

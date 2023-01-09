@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import DataComponent from "./components/DataComponent.vue";
-import {useRouter} from "vue-router";
+// import {useRouter} from "vue-router";
 import {watchEffect} from "vue";
 import {supabase} from "./supa";
 import {store} from "./supa/store";
 import {getOpenApi} from "./supa/supa-openapi";
 import {promisedReactive} from './utils/promisedReactive';
+import {router} from "./main";
 
-const router = useRouter();
+// const router = useRouter();
 // const routeList = ref(router.getRoutes());
 
 supabase.auth.getSession().then(({data, error}) => {
@@ -105,7 +106,32 @@ supabase.auth.getSession().then(({data, error}) => {
 
 </template>
 
-<style >
+<!-- Non-scoped ?! -->
+<style>
+
+@import "https://igoradamenko.github.io/awsm.css/css/awsm_theme_gondola.css";
+
+
+@media print {
+  .screen {
+    display: none;
+  }
+
+
+  .page{
+    break-before: page;
+  }
+
+
+
+}
+
+
+button {
+  padding: 2px;
+  margin: 4px;
+}
+
 
 nav {
   display: flex;

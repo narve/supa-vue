@@ -66,6 +66,13 @@ async function updateProfile() {
   }
 }
 
+const newPassword = ref('')
+const updatePassword = async() => {
+  await supabase.auth.updateUser( {
+    password: newPassword.value
+  })
+}
+
 async function signOut() {
   try {
     loading.value = true
@@ -112,6 +119,20 @@ async function signOut() {
           :disabled="loading"
       />
     </div>
+  </form>
 
+  <form @submit.prevent="updatePassword">
+    <fieldset>
+      {{newPassword}}
+      <div>
+        <label for="password">Endre passord</label>
+        <input type="password" v-model="newPassword">
+      </div>
+    </fieldset>
+    <input
+      type="submit"
+      class="button block primary"
+      value="Sett passord"
+      :disabled="!newPassword">
   </form>
 </template>

@@ -30,7 +30,9 @@ export default {
     const handlePasswordLogin = async () => {
       try {
         loading.value = true
-        const {error} = await supabase.auth.signIn({email: email.value, password: password.value});
+        const {error} = await supabase.auth.signInWithPassword(
+            {email: email.value, password: password.value}
+        );
         if (error)
           alert(error.message)
         else
@@ -70,7 +72,7 @@ export default {
 
   <form>
     <label>
-      Logg inn vha Facebook ved å klikke her: 
+      Logg inn vha Facebook ved å klikke her:
       <button style="border: none; background-color: inherit;" @click.prevent="handleFacebookLogin">
         <img role="button" src="/src/assets/fb.png" alt="facebook" style="max-width: 2em; display: inline-block;">
       </button>

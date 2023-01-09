@@ -3,6 +3,7 @@ import GradeHome from "./GradeHome.vue";
 import Students from "./students.vue";
 import Questions from "./questions.vue";
 import Report from "./report.vue";
+import Student from "./student.vue";
 
 export default <RouteRecordRaw[]>[
     {
@@ -13,6 +14,10 @@ export default <RouteRecordRaw[]>[
             {
                 path: 'students',
                 component: Students,
+            },
+            {
+                path: 'student/:id',
+                component: Student,
             },
             {
                 path: 'Questions',

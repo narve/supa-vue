@@ -1,12 +1,14 @@
 <template>
 
-        <h2>Rapport</h2>
+  <div class="screen">
 
-          <button @click="fetch()">FETCH/RELOAD</button>
-      <button @click="printIt">PRINT</button>
+    <h2>Rapport</h2>
 
+    <button @click="fetch()">FETCH/RELOAD</button>
+    <button @click="printIt">PRINT</button>
+  </div>
 
-      <div class="screen" style="display: none">
+  <div class="screen" style="display: none">
         <textarea id="csv">OppgaveTittel,Daniel,Noah,Abdu,Rasmuss,Aleksander,Henrik,Matilde B.,Mathilde S. H. ,Sara,Jenny,Karsten,Lise,Ole,Christian August,Magnus,Lilly,Vemund,Sol,Fillip,Oliver,Mathias
 Oppgave 1,2,1.5,2,1.5,2,2,1.5,1.5,1.5,1.5,0,2,1.5,0,0,1.5,1.5,1.5,1.5,0.5,0
 Oppgave 2,1,1,1,1,1,1,1,1,1,0,1,1,1,1,0,1,1,1,1,1,1
@@ -29,48 +31,74 @@ Oppgave 12d,0.5,1,1,1,1,1,1,1,1,1,0,1,0,1,1,1,1,1,1,0,1
 Oppgave 12e,1,0.5,1,0,0.5,4,0.5,1,0.5,1,1,1,1,1,1,1,1,0.5,1,1,1
 Oppgave 14,4,4,4,4,4,4,4,4,0.5,3.5,2,4,4,4,4,4,4,4,1,2,4
 Oppgave 15,0,2.5,3,3,3,0,2,3,0,2,2,3,3,2.5,3,1.5,2,3,1,0,2</textarea>
-        <input type="submit" @click="importCsv">
+    <input type="submit" @click="importCsv">
+  </div>
+
+
+  <div id="toprint">
+
+    <div class="page">
+      <h1>Oversikt</h1>
+
+      <div>
+        <p>Antall elever: {{students.length}}</p>
+        <p>Gjennomsnitt: {{averageScore}}</p>
+
+        <table>
+          <thead>
+          <tr>
+            <th>Elev</th>
+            <th>Poeng</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr v-for="s of students" :key="s.id">
+            <td>{{s.name}}</td>
+            <td>{{totalPointsForStudent(s.id)}}</td>
+          </tr>
+          </tbody>
+        </table>
+
       </div>
+    </div>
 
+    <div class="page" v-for="s of students" :key="s.id">
+      <h1>Elev: {{ s.name }}</h1>
 
-      <div id="toprint">
-        <div class="page" v-for="s of students" :key="s.id">
-          <h1>Elev: {{ s.name }}</h1>
+      <table border="1">
+        <thead>
+        <tr>
+          <th>Oppgave</th>
+          <th>Maks Poeng</th>
+          <!--            <th>Kommentar</th>-->
+          <th>Elevens poeng</th>
+          <!--            <th>Kommentar</th>-->
+        </tr>
+        </thead>
+        <tbody>
+        <tr v-for="q of questions" :key="q.id">
+          <!--            <th>{{ q.id }}</th>-->
+          <td>{{ q.name }}</td>
+          <td>{{ q.points }}</td>
+          <!--            <td>{{ q.comments }}</td>-->
+          <td>
+            {{ answer(s.id, q.id).points }}
+          </td>
+          <!--            <td> &nbsp;-->
+          <!--              {{ answer(s.id, q.id).comments }}-->
+          <!--            </td>-->
+        </tr>
 
-          <table border="1">
-            <thead>
-            <tr>
-              <th>Oppgave</th>
-              <th>Maks Poeng</th>
-              <!--            <th>Kommentar</th>-->
-              <th>Elevens poeng</th>
-              <!--            <th>Kommentar</th>-->
-            </tr>
-            </thead>
-            <tbody>
-            <tr v-for="q of questions" :key="q.id">
-              <!--            <th>{{ q.id }}</th>-->
-              <td>{{ q.name }}</td>
-              <td>{{ q.points }}</td>
-              <!--            <td>{{ q.comments }}</td>-->
-              <td>
-                {{ answer(s.id, q.id).points }}
-              </td>
-              <!--            <td> &nbsp;-->
-              <!--              {{ answer(s.id, q.id).comments }}-->
-              <!--            </td>-->
-            </tr>
+        </tbody>
+      </table>
 
-            </tbody>
-          </table>
+      <p>Totalt antall mulige poeng: {{ totalPoints }}</p>
+      <p>Elevens poeng: {{ totalPointsForStudent(s.id) }}</p>
 
-          <p>Totalt antall mulige poeng: {{ totalPoints }}</p>
-          <p>Elevens poeng: {{ totalPointsForStudent(s.id) }}</p>
+    </div>
 
-        </div>
-
-        <!--  {{ students }}-->
-      </div>
+    <!--  {{ students }}-->
+  </div>
 
 </template>
 
@@ -82,6 +110,7 @@ import {supabase} from "../../supa";
 
 const students = ref([] as any[]);
 const questions = ref([] as any[]);
+const averageScore = ref(0);
 
 const totalPoints = ref(0)
 const totalPointsForStudent = (id: number) => {
@@ -110,6 +139,9 @@ const fetch = async () => {
     console.log('error fetching: ', _studentsError);
 
   totalPoints.value = questions.value.map(q => q.points).reduce((a, b) => a + b, 0)
+  const scores = students.value.map(s=>s.answer.map(a=>a.points).reduce((a,b)=>a+b, 0))
+
+  averageScore.value = Math.round(10*scores.reduce((a,b)=>a+b,0) / students.value.length)/10
 }
 
 fetch()
@@ -172,11 +204,11 @@ const importCsv = async () => {
 const printIt = () => {
   const element = document.getElementById('toprint');
   const opt = {
-    margin:       1,
-    filename:     'poeng.pdf',
+    margin: 1,
+    filename: 'poeng.pdf',
     // image:        { type: 'jpeg', quality: 0.98 },
     // html2canvas:  { scale: 2 },
-    jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' },
+    jsPDF: {unit: 'in', format: 'a4', orientation: 'portrait'},
     pagebreak: {
       after: '.page'
     }
@@ -188,4 +220,13 @@ const printIt = () => {
 </script>
 
 <style scoped>
+@media print {
+  .screen {
+    display: none;
+  }
+
+  .page {
+    break-before: page;
+  }
+}
 </style>
