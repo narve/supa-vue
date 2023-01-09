@@ -4,10 +4,10 @@ import {createRouter, createWebHistory, RouterOptions} from 'vue-router';
 // import AboutComponent from './components/About.vue';
 // import SupaConfig from './components/SupaConfig.vue';
 import AuthComponent from './components/Auth.vue';
-import DataComponent from './components/DataComponent.vue';
+import DataComponent from './modules/api/DataComponent.vue';
 // import PasswordRecovery from './components/PasswordRecovery.vue';
 import OrderLine from "./modules/bee/OrderLine.vue";
-import DataTypes from "./components/DataTypes.vue";
+import DataTypes from "./modules/api/DataTypes.vue";
 import HomeComponent from "./components/Home.vue";
 import {supabase} from "./supa";
 

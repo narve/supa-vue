@@ -1,11 +1,11 @@
 <script setup lang="ts">
 
-import {fetchDataAsync, supabase} from "../supa";
+import {fetchDataAsync, supabase} from "../../supa";
 import {useRouter} from "vue-router";
 import {ref, watch} from "vue";
-import {Definitions} from "../supa/SupaTypes";
-import {KVP} from "../supa/supa-openapi";
-import {store} from "../supa/store";
+import {Definitions} from "../../supa/SupaTypes";
+// import {KVP} from "../../supa/supa-openapi";
+import {store} from "../../supa/store";
 
 const tableName = ref('...')
 const newObject = ref({} as any);
@@ -73,7 +73,7 @@ const cellToString = (row: any, column: any) => {
   const colName = (column.isFk && !!column.fk.fk_name) ? column.fk.fk_name : column.name;
   // const colName = column.name;
   const cell = row[colName];
-  console.log('cell for row:', row, ' column:', column, ', colName: ', colName, ' cell: ', cell);
+  // console.log('cell for row:', row, ' column:', column, ', colName: ', colName, ' cell: ', cell);
   return !cell ? '' : (cell.handle || cell.name || cell.email || cell.id || cell);
 };
 
@@ -127,8 +127,8 @@ const deleteRow = (id: string) => {
 
 const currentItem = ref(null as any);
 
-const allProps = ref(null as any);
-const editableProps = ref([] as KVP[]);
+// const allProps = ref(null as any);
+// const editableProps = ref([] as KVP[]);
 
 const edit = async (item: any) => {
   console.log('Now editing: ', item);
@@ -168,7 +168,36 @@ const remove = async (item: any) => {
   <div>
     <button @click="currentItem = {}">Registrer ny </button>
   </div>
-  
+
+
+  <div v-if="true">
+    <form @submit.prevent="handleCreate">
+      <fieldset>
+        <legend>Create new {{ tableName }}</legend>
+        <label v-for="field of editableColumns">
+          <!--                    <pre>{{field}}</pre>-->
+          {{ cellTitle(field) }}
+
+          <input v-if="field.type === 'boolean'"
+                 type="checkbox"/>
+
+          <input v-else-if="!field.isFk"
+                 v-model="newObject[field.name]"
+                 v-bind:placeholder="field.name"
+                 name="field.name"
+          />
+
+          <select v-if="field.isFk" v-model="newObject[field.name]">
+            <option v-for="o of selectors[field.fk.table]" :key="o.id" :value="o.id">{{ o.title }}</option>
+          </select>
+
+
+        </label>
+        <input type="submit">
+      </fieldset>
+    </form>
+  </div>
+
   <div v-if="currentItem">
     <p>currentItem: {{currentItem}}</p>
     <p>editableColumns: {{editableColumns}}</p>
@@ -180,13 +209,13 @@ const remove = async (item: any) => {
       <button @click="currentItem = null" >
         Avbryt
       </button>
-      <button v-if="currentItem.id" @click="save()" >
+      <button v-if="currentItem?.id" @click="save()" >
         Oppdater
       </button>
-      <button v-if="currentItem.id" @click="remove(currentItem)" >
+      <button v-if="currentItem?.id" @click="remove(currentItem)" >
         Slett
       </button>
-      <button v-if="!currentItem.id" @click="save()" >
+      <button v-if="!currentItem?.id" @click="save()" >
         Registrer
       </button>
     </div>
@@ -219,33 +248,6 @@ const remove = async (item: any) => {
     </table>
   </div>
 
-  <div v-if="false">
-    <form @submit.prevent="handleCreate">
-      <fieldset>
-        <legend>Create new {{ tableName }}</legend>
-        <label v-for="field of editableColumns">
-          <!--          <pre>{{field}}</pre>-->
-          {{ cellTitle(field) }}
-
-          <input v-if="field.type === 'boolean'"
-                 type="checkbox"/>
-
-          <input v-else-if="!field.isFk"
-                 v-model="newObject[field.name]"
-                 v-bind:placeholder="field.name"
-                 name="field.name"
-          />
-
-          <select v-if="field.isFk" v-model="newObject[field.name]">
-            <option v-for="o of selectors[field.fk.table]" :key="o.id" :value="o.id">{{ o.title }}</option>
-          </select>
-
-
-        </label>
-        <input type="submit">
-      </fieldset>
-    </form>
-  </div>
 
 </template>
 

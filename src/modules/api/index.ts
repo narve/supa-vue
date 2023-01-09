@@ -1,5 +1,5 @@
 import {RouteRecordRaw} from "vue-router";
-import DataTypes from "../../components/DataTypes.vue";
+import DataTypes from "./DataTypes.vue";
 
 const name = 'api'
 const title = 'API'

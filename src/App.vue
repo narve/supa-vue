@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import DataComponent from "./components/DataComponent.vue";
+// import DataComponent from "./components/DataComponent.vue";
 // import {useRouter} from "vue-router";
-import {watchEffect} from "vue";
+// import {watchEffect} from "vue";
 import {supabase} from "./supa";
 import {store} from "./supa/store";
-import {getOpenApi} from "./supa/supa-openapi";
-import {promisedReactive} from './utils/promisedReactive';
+// import {getOpenApi} from "./supa/supa-openapi";
+// import {promisedReactive} from './utils/promisedReactive';
 import {router} from "./main";
 
 // const router = useRouter();

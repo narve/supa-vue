@@ -1,10 +1,8 @@
-import {
-    SupabaseClient
-} from '@supabase/supabase-js';
+import {SupabaseClient} from '@supabase/supabase-js';
 import {OpenApiData} from './SupaTypes';
 
 const log = (...args: any[]) => {
-    // console.debug("[oapi]", ...args);
+    console.debug("[oapi]", ...args);
 };
 
 export const getOpenApi = async (client: SupabaseClient) => {
@@ -49,6 +47,7 @@ export const processOpenApi = ({definitions}) => {
             prop.isPk = prop.description?.indexOf("<pk") >= 0;
             prop.isFk = prop.description?.indexOf("<fk") >= 0;
             if (prop.isFk) {
+                // console.log('FK: ', prop)
                 const [, table, column] = [...prop.description.matchAll(/.*<fk table='(.*)' column='(.*)'.*/g)]
                     [0];
                 prop.fk = {table, column, select: definitions[table].titleProp};
@@ -62,9 +61,8 @@ export const processOpenApi = ({definitions}) => {
 export const colVal = col => {
     if (!col) return "";
     if (typeof col === "object") {
-        const s = col['title'] || col['name'] || col['handle'] || col['id'];
         // return html`<a href="the-ref">${s}</a>`;
-        return s;
+        return col['title'] || col['name'] || col['handle'] || col['id'];
     }
     return col;
 };
