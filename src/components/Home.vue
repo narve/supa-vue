@@ -7,7 +7,13 @@ export default {
 </script>
 
 <template>
-  <div>
+  <p>
     This is the home page of this wonderful app. 
-  </div>
+  </p>
+  <p>
+    Please select a module: 
+  </p>
+  <ul>
+    <router-link to="grades">Grades</router-link>
+  </ul>
 </template>

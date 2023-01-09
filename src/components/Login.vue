@@ -10,9 +10,16 @@ export default {
     const password = ref("")
 
     const handleMagicLogin = async () => {
+      // const emailRedirectTo = window.location.href
+      const emailRedirectTo = "http://localhost:3000"
       try {
         loading.value = true
-        const {error} = await supabase.auth.signIn({email: email.value})
+        const {error} = await supabase.auth.signInWithOtp({
+          email: email.value,
+          options: {
+            emailRedirectTo
+          }
+        })
         if (error)
           alert(error.message)
         alert("Check your email for the login link!")

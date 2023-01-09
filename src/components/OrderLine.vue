@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import {onBeforeMount, onBeforeUnmount, Ref, ref, UnwrapRef} from "vue";
+import {onBeforeMount, onBeforeUnmount, ref} from "vue";
 import {supabase} from "../supa";
+import {store} from "../supa/store";
 
 /// Statistics 
 
@@ -11,7 +12,7 @@ const sums = ref({
 });
 
 const fetchStatistics = async (why?: string) => {
-  const {error, data} = await supabase.from("orderline_statistics");
+  const {error, data} = await supabase.from("orderline_statistics").select();
   if (error) {
     console.log("Statistics failed: ", error.message);
   } else {
@@ -57,7 +58,7 @@ const reset = async () => {
 }
 
 const save = async () => {
-  const user = supabase.auth.user();
+  const user = store.session!.user;
   console.log('Save: ', {user}, JSON.stringify(currentItem.value, null, ' '));
   // item.value.owner_id ||= user?.id; handled by database :) 
   const {error, data} = await supabase.from("orderline").upsert(currentItem.value);
@@ -104,12 +105,17 @@ onBeforeMount(async () => {
   await refresh();
   // await fetchStatistics('initial');
   supabase
-      .from('orderline')
+      .channel('orderline')
       // .on('UPDATE', () => fetchStatistics('update'))
       // .on('INSERT', () => console.log('insert'))
       // .on('DELETE', () => console.log('delete'))
-      .on('*', () => fetchStatistics('something happened'))
-      .subscribe(() => fetchStatistics('subscribe'));
+
+      .on(
+          'postgres_changes',
+          {event: '*', schema: 'public', table: 'orderline'},
+          () => fetchStatistics('something happened'))
+      // .subscribe(() => fetchStatistics('subscribe'));
+      .subscribe();
 
   // Note that we want an interval in addition to subscription... since 
   // RLS hides other peoples updates from us. 
@@ -232,7 +238,7 @@ div.money.money.money {
 
   <!--  <h2>Bestillinger</h2>-->
 
-  <div class="statistics" v-if="!!supabase.auth.user()?.id"
+  <div class="statistics" v-if="!!store.session?.user"
        :style="{visibility: orderline_statistics.length > 0 ? 'visible': 'hidden'}"
   >
     <div class="totals">

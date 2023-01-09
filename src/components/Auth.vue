@@ -14,7 +14,7 @@ import Profile from "../components/Profile.vue"
 <template>
 
   <div class="container">
-    <Profile v-if="store.user"/>
+    <Profile v-if="store.session"/>
     <Login v-else/>
   </div>
 </template>

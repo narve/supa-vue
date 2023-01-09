@@ -10,55 +10,67 @@ import {promisedReactive} from './utils/promisedReactive';
 const router = useRouter();
 // const routeList = ref(router.getRoutes());
 
-store.user = supabase.auth.user()
-console.log('Setup: ', {user: store.user});
-
-interface DataList {
-  name: string;
-  path: string;
-  component: any;
-}
-
-const dataList = promisedReactive<DataList[]>(
-    [],
-    () => {
-      return getOpenApi(supabase)
-          .then(data => {
-            const toRemove = ['ceremony_statistics', 'countries', 'participant', 'participant_statistics', 'profiles', 'location', 'item'];
-            return Object.keys(data.definitions)
-                .filter(n => !toRemove.includes(n))
-                .map(name => ({name, path: `/show/${name}`, component: DataComponent}))
-          });
-    }
-)
-
-// const filteredRouteList = computed(() => routeList.value.filter(s => s.path.indexOf(":") < 0));
-
-watchEffect(() => {
-  if (dataList.error) {
-    alert('Oopsie! Unable to load dataList: ' + dataList.error.message);
-  }
+supabase.auth.getSession().then(({data, error}) => {
+  console.log('Setup: ', {data, error});
+  store.session = data.session
 })
+
+// store.session = (await supabase.auth.getSession()).data.session
+//
+// interface DataList {
+//   name: string;
+//   path: string;
+//   component: any;
+// }
+//
+// const dataList = promisedReactive<DataList[]>(
+//     [],
+//     () => {
+//       return getOpenApi(supabase)
+//           .then(data => {
+//             const toRemove = [
+//               'ceremony_statistics', 'countries', 'participant', 'participant_statistics',
+//               'profiles', 'location', 'item',
+//
+//             ];
+//             const toInclude = [
+//                 'question', 'answer', 'student'
+//             ]
+//             return Object.keys(data.definitions)
+//                 // .filter(n => !toRemove.includes(n))
+//                 .filter(n => toInclude.includes(n))
+//                 .map(name => ({name, path: `/show/${name}`, component: DataComponent}))
+//           });
+//     }
+// )
+//
+// // const filteredRouteList = computed(() => routeList.value.filter(s => s.path.indexOf(":") < 0));
+//
+// watchEffect(() => {
+//   if (dataList.error) {
+//     alert('Oopsie! Unable to load dataList: ' + dataList.error.message);
+//   }
+// })
 </script>
 
 <template>
 
   <div style="float:right; display:inline-block;">
-    <RouterLink to="/api" v-if="supabase.auth.user()?.email==='narve@dv8.no'">
+    <RouterLink to="/api" >
       <i class="material-icons">settings</i>
     </RouterLink>
-    <RouterLink to="auth" v-if="router.currentRoute.value.name !== 'auth'">
-      <span v-if="!!supabase.auth.user()?.id">{{ supabase.auth.user()?.email }}</span>
+    <RouterLink to="/auth" v-if="router.currentRoute.value.name !== 'auth'">
+<!--      <span v-if="!!store.session">{{ store.session }}</span>-->
       <i class="material-icons">person</i>
     </RouterLink>
-    <RouterLink to="/home" v-if="router.currentRoute.value.name !== 'home'">
+    <RouterLink to="/" v-if="router.currentRoute.value.name !== 'home'">
       Hjem
       <i class="material-icons">home</i>
     </RouterLink>
   </div>
 
 
-  <h1>Dugnad!</h1>
+<!--  <h1>DV8!</h1>-->
 
 
   <!--  <p>-->
@@ -84,13 +96,16 @@ watchEffect(() => {
 
   <section>
     <!--    <h1>{{ $route.name }}</h1>-->
-    <RouterView></RouterView>
+<!--    <Suspense>-->
+    <router-view></router-view>
+
+    <!--    </Suspense>-->
   </section>
 
 
 </template>
 
-<style scoped>
+<style >
 
 nav {
   display: flex;

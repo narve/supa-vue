@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import {supabase} from "../supa"
 import {store} from "../supa/store"
-import {onMounted, ref, watchEffect} from "vue"
+import {ref, watchEffect} from "vue"
 import {promisedReactive} from '../utils/promisedReactive';
 
 const loading = ref(true)
-const username = ref("")
-const website = ref("")
-const avatar_url = ref("")
+// const username = ref("")
+// const website = ref("")
+// const avatar_url = ref("")
 
 interface Profile {
   username: string;
@@ -18,17 +18,19 @@ interface Profile {
 const profile = promisedReactive<Profile>(
     {username: '', website: '', avatar_url: ''},
     async () => {
-      store.user = supabase.auth.user()
+      const sd = await supabase.auth.getSession()
+      // store.session = supabase.auth.user()
+      store.session = sd.data.session
 
-      let {data, error, status} = await supabase
+      const {data, error, status} = await supabase
           .from("profiles")
           .select(`username, website, avatar_url`)
-          .eq("id", store.user?.id)
+          .eq("id", store.session?.user.id)
           .single()
 
       if (error && status !== 406) throw error
 
-      return data;
+      return data!;
     }
 )
 
@@ -42,18 +44,19 @@ watchEffect(() => {
 async function updateProfile() {
   try {
     loading.value = true
-    store.user = supabase.auth.user()
+    store.session = (await supabase.auth.getSession()).data.session
 
     const updates = {
-      id: store.user?.id,
-      username: profile.value.username,
-      website: profile.value.website,
+      id: store.session?.user.id,
+      username: profile.value?.username,
+      website: profile.value?.website,
       avatar_url: profile.value.avatar_url,
       updated_at: new Date(),
     }
 
-    let {error} = await supabase.from("profiles").upsert(updates, {
-      returning: "minimal", // Don't return the value after inserting
+    let {error} = await supabase.from("profiles")
+        .upsert(updates, {
+      // returning: "minimal", // Don't return the value after inserting
     })
 
     if (error)
@@ -77,7 +80,7 @@ async function signOut() {
 <template>
 
   <p>
-    Du er logget inn som <strong>{{ store.user?.email }}</strong>
+    Du er logget inn som <strong>{{ store.session?.user.email }}</strong>
   </p>
 
   <div>
@@ -90,7 +93,7 @@ async function signOut() {
       <legend>Oppdater brukerinformasjon</legend>
       <div>
         <label for="email">Email</label>
-        <input id="email" type="text" :value="store.user?.email" disabled/>
+        <input id="email" type="text" :value="store.session?.user.email" disabled/>
       </div>
       <div>
         <label for="username">Name</label>
