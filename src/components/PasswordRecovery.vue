@@ -1,11 +1,8 @@
-<script>
-
-import {ref} from "vue";
+<script setup lang="ts">
+import { onMounted, ref } from "vue";
 import {fetchDataAsync, supabase} from "../supa";
 
-
 const args = ref({});
-
 
 const submitPassword = async () => {
   console.log('submitting...', JSON.stringify(args, '  '));
@@ -29,24 +26,13 @@ const extractArgs = () => {
       .forEach(([k, v]) => args.value[k] = v);
 }
 
-
-export default {
-  methods: {
-    submitPassword
-  },
-  setup() {
-    extractArgs();
-    console.log('process hash: ', document.location.hash);
-    console.log('process hash: ', args.value);
-    return {
-
-      args
-    };
-  },
-  // submitPassword,
-  args,
-};
+onMounted(() => {
+	extractArgs();
+	console.log('process hash: ', document.location.hash);
+	console.log('process hash: ', args.value);
+})
 </script>
+
 <template>
 
   <pre>args: 

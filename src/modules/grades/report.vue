@@ -1,5 +1,4 @@
-<script   setup>
-
+<script setup lang="ts">
 import {ref} from 'vue';
 import {supabase} from "../../supa";
 // import {supabase} from '';

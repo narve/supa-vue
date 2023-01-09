@@ -7,9 +7,8 @@ import {Definitions} from "../supa/SupaTypes";
 import {KVP} from "../supa/supa-openapi";
 
 const tableName = ref('...')
-
-
 const newObject = ref({} as any);
+const router = useRouter();
 
 const data = ref([] as any[]);
 const columns = ref<string[]>([]);
