@@ -38,8 +38,14 @@ supabase.auth.getSession().then(({data, error}) => {
 <!-- Non-scoped ?! -->
 <style>
 
-@import "https://igoradamenko.github.io/awsm.css/css/awsm_theme_gondola.css";
+@import "https://igoradamenko.github.io/awsm.css/css/awsm_theme_gondola.css" only screen;
 
+/*
+@import url('path.css') (screen and min/max-width: 600px);
+*/
+@media screen {
+
+}
 
 @media print {
   .screen {
@@ -47,7 +53,7 @@ supabase.auth.getSession().then(({data, error}) => {
   }
 
 
-  .page {
+  .page:not(:first-of-type) {
     break-before: page;
   }
 }

@@ -39,9 +39,9 @@ const fetch = async () => {
     console.log('error fetching: ', _studentsError);
 
   totalPoints.value = questions.value.map(q => q.points).reduce((a, b) => a + b, 0)
-  const scores = students.value.map(s=>s.answer.map((a:any)=>a.points).reduce((a:number,b:number)=>a+b, 0))
+  const scores = students.value.map(s => s.answer.map((a: any) => a.points).reduce((a: number, b: number) => a + b, 0))
 
-  averageScore.value = Math.round(10*scores.reduce((a,b)=>a+b,0) / students.value.length)/10
+  averageScore.value = Math.round(10 * scores.reduce((a, b) => a + b, 0) / students.value.length) / 10
   isLoading.value = false
 }
 
@@ -91,7 +91,7 @@ const importCsv = async () => {
 const printIt = () => {
   const element = document.getElementById('toprint');
   const opt = {
-    margin: 1,
+    margin: 0.2,
     filename: 'poeng.pdf',
     // image:        { type: 'jpeg', quality: 0.98 },
     // html2canvas:  { scale: 2 },
@@ -100,7 +100,13 @@ const printIt = () => {
       after: '.page'
     }
   };
-  (window as any)['html2pdf']().set(opt).from(element).save();
+
+  const activateCSSForPDF = () => document.getElementById('toprint')!.classList.add("printing");
+  const deactivateCSSForPDF = () => document.getElementById('toprint')!.classList.remove("printing");
+
+
+  activateCSSForPDF()
+  ;(window as any)['html2pdf']().set(opt).from(element).save().finally(deactivateCSSForPDF);
   // window.html2pdf(element);
 }
 
@@ -151,8 +157,8 @@ Oppgave 15,0,2.5,3,3,3,0,2,3,0,2,2,3,3,2.5,3,1.5,2,3,1,0,2</textarea>
       <h1>Oversikt</h1>
 
       <div>
-        <p>Antall elever: {{students.length}}</p>
-        <p>Gjennomsnitt: {{averageScore}}</p>
+        <p>Antall elever: {{ students.length }}</p>
+        <p>Gjennomsnitt: {{ averageScore }}</p>
 
         <table>
           <thead>
@@ -164,9 +170,9 @@ Oppgave 15,0,2.5,3,3,3,0,2,3,0,2,2,3,3,2.5,3,1.5,2,3,1,0,2</textarea>
           </thead>
           <tbody>
           <tr v-for="s of students" :key="s.id">
-            <td>{{s.name}}</td>
-            <td>{{totalPointsForStudent(s.id)}}</td>
-            <th>{{gradeForStudent(s.id)}}</th>
+            <td>{{ s.name }}</td>
+            <td>{{ totalPointsForStudent(s.id) }}</td>
+            <th>{{ gradeForStudent(s.id) }}</th>
           </tr>
           </tbody>
         </table>
@@ -177,7 +183,7 @@ Oppgave 15,0,2.5,3,3,3,0,2,3,0,2,2,3,3,2.5,3,1.5,2,3,1,0,2</textarea>
     <div class="page" v-for="s of students" :key="s.id">
       <h1>Elev: {{ s.name }}</h1>
 
-      <table border="1">
+      <table>
         <thead>
         <tr>
           <th>Oppgave</th>
@@ -215,6 +221,19 @@ Oppgave 15,0,2.5,3,3,3,0,2,3,0,2,2,3,3,2.5,3,1.5,2,3,1,0,2</textarea>
 </template>
 
 <style scoped>
+
+.printing, .printing > * {
+  background: white;
+  color: black;
+}
+
+.printing h1, .page h1 {
+  padding-top: 0;
+  padding-bottom: 1em;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
 @media print {
   .screen {
     display: none;
