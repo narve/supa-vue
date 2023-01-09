@@ -5,7 +5,7 @@ import {createRouter, createWebHistory, RouterOptions} from 'vue-router';
 // import SupaConfig from './components/SupaConfig.vue';
 import AuthComponent from './components/Auth.vue';
 import DataComponent from './components/DataComponent.vue';
-import PasswordRecovery from './components/PasswordRecovery.vue';
+// import PasswordRecovery from './components/PasswordRecovery.vue';
 import OrderLine from "./components/OrderLine.vue";
 import DataTypes from "./components/DataTypes.vue";
 import HomeComponent from "./components/Home.vue";
@@ -71,11 +71,11 @@ const myRoutes: RouterOptions = {
             // name: 'show-data',
             component: DataComponent,
         },
-        {
-            path: "/password-recovery",
-            name: "password-recovery",
-            component: PasswordRecovery,
-        },
+        // {
+        //     path: "/password-recovery",
+        //     name: "password-recovery",
+        //     component: PasswordRecovery,
+        // },
         // ...components.map(sc => ToRoute(sc)),
     ], history: createWebHistory()
 };

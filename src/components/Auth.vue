@@ -1,9 +1,9 @@
-<script  >
-export default {
-  name: "User&Registration",
-  path: "/auth"
-};
-</script>
+<!--<script  >-->
+<!--export default {-->
+<!--  name: "User&Registration",-->
+<!--  path: "/auth"-->
+<!--};-->
+<!--</script>-->
 
 <script setup lang="ts">
 import {store} from "../supa/store";

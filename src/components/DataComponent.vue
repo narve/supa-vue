@@ -5,6 +5,7 @@ import {useRouter} from "vue-router";
 import {ref, watch} from "vue";
 import {Definitions} from "../supa/SupaTypes";
 import {KVP} from "../supa/supa-openapi";
+import {store} from "../supa/store";
 
 const tableName = ref('...')
 const newObject = ref({} as any);
@@ -135,7 +136,7 @@ const edit = async (item: any) => {
 }
 
 const save = async () => {
-  const user = supabase.auth.user();
+  const user = store.session!.user;
   console.log('create new', {user}, JSON.stringify(currentItem.value, null, ' '));
   // item.value.owner_id ||= user?.id; handled by database :) 
   const {error, data} = await supabase.from("orderline").upsert(currentItem.value);
@@ -179,13 +180,13 @@ const remove = async (item: any) => {
       <button @click="currentItem = null" >
         Avbryt
       </button>
-      <button v-if="currentItem.id" @click="save(currentItem)" >
+      <button v-if="currentItem.id" @click="save()" >
         Oppdater
       </button>
       <button v-if="currentItem.id" @click="remove(currentItem)" >
         Slett
       </button>
-      <button v-if="!currentItem.id" @click="save(currentItem)" >
+      <button v-if="!currentItem.id" @click="save()" >
         Registrer
       </button>
     </div>

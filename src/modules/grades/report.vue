@@ -56,7 +56,7 @@ fetch()
 // }
 
 const importCsv = async () => {
-  const csv = document.querySelector('#csv').textContent.trim()
+  const csv = document.querySelector('#csv')!.textContent!.trim()
   const lines = csv.split('\n')
 
   const studentNames = lines[0].split(',').map(s => s.trim()).slice(1)
@@ -108,7 +108,7 @@ const printIt = () => {
       after: '.page'
     }
   };
-  window.html2pdf().set(opt).from(element).save();
+  (window as any)['html2pdf']().set(opt).from(element).save();
   // window.html2pdf(element);
 }
 
