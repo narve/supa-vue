@@ -52,6 +52,15 @@ supabase.auth.getSession().then(({data, error}) => {
   }
 }
 
+.loading-indicator {
+  position: fixed;
+  font-size: xxx-large;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  outline: darkred solid 3px;
+}
+
 
 button {
   padding: 2px;
@@ -69,9 +78,10 @@ nav {
   nav {
     display: none;
   }
+
   nav.module {
     display: flex;
-    //display: block;
+  //display: block;
   }
 }
 

@@ -191,6 +191,11 @@ const startNew = () => {
                  type="number"
           />
 
+          <textarea v-if="field.type === 'string' && field.maxLength > 64"
+                    v-model="currentItem[field.name]"
+                    v-bind:placeholder="field.name"
+                    name="field.name"
+          ></textarea>
 
           <select v-if="field.isFk" v-model="currentItem[field.name]">
             <option v-for="o of selectors[field.fk.table]" :key="o.id" :value="o.id">{{ o.title }}</option>

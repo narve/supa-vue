@@ -3,6 +3,7 @@ import {ref} from 'vue';
 import {supabase} from "../../supa";
 // import {supabase} from '';
 
+const isLoading = ref(false)
 const students = ref([] as any[]);
 const questions = ref([] as any[]);
 const averageScore = ref(0);
@@ -17,6 +18,9 @@ const totalPointsForStudent = (id: number) => {
   return sum
 }
 
+const gradeForStudent = (id: number) =>
+    Math.round(60 * totalPointsForStudent(id) / totalPoints.value) / 10
+
 const answer = (studentId: number, questionId: number) => {
   const student = students.value.find(s => s.id == studentId);
   const answer = student.answer.find((a: any) => a.question_id == questionId)
@@ -24,6 +28,7 @@ const answer = (studentId: number, questionId: number) => {
 }
 
 const fetch = async () => {
+  isLoading.value = true
   const {data: _questions} = await supabase.from('question').select().order('id')
   questions.value = _questions as any[]
   const {data: _students, error: _studentsError} = await supabase.from('student')
@@ -37,23 +42,10 @@ const fetch = async () => {
   const scores = students.value.map(s=>s.answer.map((a:any)=>a.points).reduce((a:number,b:number)=>a+b, 0))
 
   averageScore.value = Math.round(10*scores.reduce((a,b)=>a+b,0) / students.value.length)/10
+  isLoading.value = false
 }
 
 fetch()
-
-// window.onbeforeprint = () => setPrintStyles(true);
-// window.onafterprint = () => setPrintStyles(false);
-
-// const setPrintStyles = (add: boolean) => {
-//   document.querySelectorAll('ion-content').forEach((element) => {
-//     const scroll = element.shadowRoot!.querySelector('.inner-scroll') as HTMLElement;
-//     if (add) {
-//       scroll.style.position = 'relative';
-//     } else {
-//       scroll.style.removeProperty('position');
-//     }
-//   });
-// }
 
 const importCsv = async () => {
   const csv = document.querySelector('#csv')!.textContent!.trim()
@@ -116,6 +108,8 @@ const printIt = () => {
 
 <template>
 
+  <div class="loading-indicator" v-if="isLoading">LOADING...</div>
+
   <div class="screen">
 
     <h2>Rapport</h2>
@@ -165,12 +159,14 @@ Oppgave 15,0,2.5,3,3,3,0,2,3,0,2,2,3,3,2.5,3,1.5,2,3,1,0,2</textarea>
           <tr>
             <th>Elev</th>
             <th>Poeng</th>
+            <th>Karakter</th>
           </tr>
           </thead>
           <tbody>
           <tr v-for="s of students" :key="s.id">
             <td>{{s.name}}</td>
             <td>{{totalPointsForStudent(s.id)}}</td>
+            <th>{{gradeForStudent(s.id)}}</th>
           </tr>
           </tbody>
         </table>
