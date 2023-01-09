@@ -8,7 +8,7 @@ import {Definitions} from "../../supa/SupaTypes";
 import {store} from "../../supa/store";
 
 const tableName = ref('...')
-const newObject = ref({} as any);
+// const newObject = ref({} as any);
 const router = useRouter();
 
 const data = ref([] as any[]);
@@ -95,9 +95,9 @@ const toPluralTitle = (s: string) => upcaseFirst(pluralize(s));
 
 const handleCreate = () => {
   const tableName = router.currentRoute.value.params.name as string;
-  console.log('create: ', JSON.stringify(newObject.value));
+  // console.log('create: ', JSON.stringify(newObject.value));
   // noinspection JSVoidFunctionReturnValueUsed,TypeScriptValidateJSTypes
-  supabase.from(tableName).insert([newObject.value])
+  supabase.from(tableName).insert([currentItem.value])
       .then((x: any) => {
         console.log('response: ', x);
         if (x.error) throw x.error;
@@ -162,35 +162,45 @@ const remove = async (item: any) => {
   }
 }
 
+const startNew = () => {
+  currentItem.value = {}
+}
+
 </script>
 <template>
 
   <div>
-    <button @click="currentItem = {}">Registrer ny </button>
+    <button @click="startNew">Registrer ny </button>
   </div>
 
 
-  <div v-if="true">
+  <div v-if="currentItem">
     <form @submit.prevent="handleCreate">
       <fieldset>
         <legend>Create new {{ tableName }}</legend>
         <label v-for="field of editableColumns">
-          <!--                    <pre>{{field}}</pre>-->
+                              <pre>{{field}}</pre>
           {{ cellTitle(field) }}
 
           <input v-if="field.type === 'boolean'"
-                 type="checkbox"/>
-
-          <input v-else-if="!field.isFk"
-                 v-model="newObject[field.name]"
-                 v-bind:placeholder="field.name"
-                 name="field.name"
+                 type="checkbox"
           />
 
-          <select v-if="field.isFk" v-model="newObject[field.name]">
+          <input v-if="field.type === 'number' && !field.isFk"
+                 v-bind:placeholder="field.name"
+                 type="number"
+          />
+
+
+          <select v-if="field.isFk" v-model="currentItem[field.name]">
             <option v-for="o of selectors[field.fk.table]" :key="o.id" :value="o.id">{{ o.title }}</option>
           </select>
 
+          <input v-else-if="!field.isFk"
+                 v-model="currentItem[field.name]"
+                 v-bind:placeholder="field.name"
+                 name="field.name"
+          />
 
         </label>
         <input type="submit">
