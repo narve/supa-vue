@@ -4,21 +4,21 @@ import {fetchDataAsync, supabase} from "../../supa";
 import {useRouter} from "vue-router";
 import {ref, watch} from "vue";
 import {Definitions} from "../../supa/SupaTypes";
-// import {KVP} from "../../supa/supa-openapi";
 import {store} from "../../supa/store";
 
-const tableName = ref('...')
-// const newObject = ref({} as any);
 const router = useRouter();
 
+const tableName = ref('...')
 const data = ref([] as any[]);
 const columns = ref<string[]>([]);
 const editableColumns = ref<any[]>([]);
 const tableColumns = ref<string[]>([]);
 
+const currentItem = ref(null as any);
+
 const selectors = ref({} as any);
 
-const applyTable = () => {
+const refreshList = async () => {
   tableName.value = router.currentRoute.value.params.name as string;
   console.log('fetching: ', tableName.value);
   const tName: keyof Definitions = <keyof Definitions>tableName.value;
@@ -31,14 +31,10 @@ const applyTable = () => {
         editableColumns.value = columns.value
             .map(c => x.meta.properties[c])
             .filter(c => !c.isPk)
-        // .map(c => c.name);
-        // console.log('editable columns: ', JSON.stringify(editableColumns.value));
 
         tableColumns.value = columns.value
             .map(c => x.meta.properties[c])
             .filter(c => !c.isPk);
-        // .map(c => c.isFk && !!c.fk.table ? c.fk.table : c);
-        // console.log('tableColumns: ', JSON.stringify(tableColumns.value));
 
         const fkTablesToFetch = Object.keys(x.meta.properties)
             .map(propName => x.meta.properties[propName])
@@ -55,26 +51,32 @@ const applyTable = () => {
             }));
             console.log('adding to selectors: ', fkTable, options);
             selectors.value[fkTable] = options;
-            // console.log('selectors now after ', fkTable, ': ', selectors.value);
           });
         }
-
       });
-
 }
-applyTable();
+
+refreshList();
 
 watch(
     () => router.currentRoute.value.params,
-    () => applyTable());
+    () => refreshList());
 
 
 const cellToString = (row: any, column: any) => {
   const colName = (column.isFk && !!column.fk.fk_name) ? column.fk.fk_name : column.name;
-  // const colName = column.name;
+
   const cell = row[colName];
   // console.log('cell for row:', row, ' column:', column, ', colName: ', colName, ' cell: ', cell);
-  return !cell ? '' : (cell.handle || cell.name || cell.email || cell.id || cell);
+
+  if(column.type === 'boolean') {
+    return cell ? 'YES' : 'NO'
+  } else if(column.type === 'string') {
+    return (cell === null || cell === undefined) ? '' : (cell.handle || cell.name || cell.email || cell.id || cell);
+  } else {
+    const stringVal = (cell === null || cell === undefined) ? '' : (cell.handle || cell.name || cell.email || cell.id || cell);
+    return `(${JSON.stringify(column)}) ${stringVal}`
+  }
 };
 
 const upcaseFirst = (s: string) => s.substring(0, 1).toUpperCase() + s.substring(1);
@@ -93,72 +95,37 @@ const pluralize = (s: string) => s.endsWith("s") ? s : s + "s";
 
 const toPluralTitle = (s: string) => upcaseFirst(pluralize(s));
 
-const handleCreate = () => {
-  const tableName = router.currentRoute.value.params.name as string;
-  // console.log('create: ', JSON.stringify(newObject.value));
-  // noinspection JSVoidFunctionReturnValueUsed,TypeScriptValidateJSTypes
-  supabase.from(tableName).insert([currentItem.value])
-      .then((x: any) => {
-        console.log('response: ', x);
-        if (x.error) throw x.error;
-        applyTable();
-      }, (err: any) => alert(err.message));
-}
-
-const deleteRow = (id: string) => {
-  console.log('should delete: ', id);
-  const tableName = router.currentRoute.value.params.name as string;
-  supabase.from(tableName).delete().eq('id', id)
-      .then((x: any) => {
-        console.log('response: ', x);
-        if (x.error) throw x.error;
-        applyTable();
-      }, (err: any) => alert(err.message));
-}
-
-
-// --- REFACTORING: 
-
-// OpenAPI
-
-// data:Ref<any> is OpenAPI spec
-// tableName is name of relation/definition
-
-
-const currentItem = ref(null as any);
-
-// const allProps = ref(null as any);
-// const editableProps = ref([] as KVP[]);
-
 const edit = async (item: any) => {
   console.log('Now editing: ', item);
-  currentItem.value = Object.assign({}, item);
+  const o: any = {id: item.id}
+  for (const p of editableColumns.value) {
+    o[p.name] = item[p.name]
+  }
+  currentItem.value = o
 }
 
 const save = async () => {
   const user = store.session!.user;
   console.log('create new', {user}, JSON.stringify(currentItem.value, null, ' '));
-  // item.value.owner_id ||= user?.id; handled by database :) 
-  const {error, data} = await supabase.from("orderline").upsert(currentItem.value);
+  const {error, data} = await supabase.from(tableName.value).upsert(currentItem.value);
   if (error) {
     console.error(error.message);
     alert('Error: ' + error.message);
   } else {
     console.log("Saved: ", {data});
     currentItem.value = null;
-    // await refresh();
+    await refreshList();
   }
 };
 
 const remove = async (item: any) => {
   console.log('remove', item);
-  const {error, data} = await supabase.from("orderline").delete().eq('id', item.id);
+  const {error, data} = await supabase.from(tableName.value).delete().eq('id', item.id);
   if (error) console.error(error);
   else {
     console.log(data);
     currentItem.value = null;
-    // await refresh();
-    // await fetchStatistics();
+    await refreshList();
   }
 }
 
@@ -170,17 +137,18 @@ const startNew = () => {
 <template>
 
   <div>
-    <button @click="startNew">Registrer ny </button>
+    <button @click="startNew">Registrer ny</button>
   </div>
 
 
   <div v-if="currentItem">
-    <form @submit.prevent="handleCreate">
+    <form>
       <fieldset>
-        <legend>Create new {{ tableName }}</legend>
+        <legend v-if="!currentItem.id">Opprett ny</legend>
+        <legend v-if="currentItem.id">Oppdater</legend>
         <label v-for="field of editableColumns">
-                              <pre>{{field}}</pre>
-          {{ cellTitle(field) }}
+          <!--                              <pre>{{field}}</pre>-->
+          {{ cellTitle(field) }}:
 
           <input v-if="field.type === 'boolean'"
                  type="checkbox"
@@ -208,35 +176,24 @@ const startNew = () => {
           />
 
         </label>
-        <input type="submit">
+        <div>
+          <button @click="currentItem = null">
+            Avbryt
+          </button>
+          <button v-if="currentItem?.id" @click="save()">
+            Oppdater
+          </button>
+          <button v-if="currentItem?.id" @click="remove(currentItem)">
+            Slett
+          </button>
+          <button v-if="!currentItem?.id" @click="save()">
+            Registrer
+          </button>
+        </div>
       </fieldset>
     </form>
   </div>
 
-  <div v-if="currentItem">
-    <p>currentItem: {{currentItem}}</p>
-    <p>editableColumns: {{editableColumns}}</p>
-    <div v-for="prop of editableColumns">
-      <label :for="'input_'+prop">{{prop.name}}</label>
-      <input id="'input_'+prop" :placeholder="prop.name">
-    </div>
-    <div>
-      <button @click="currentItem = null" >
-        Avbryt
-      </button>
-      <button v-if="currentItem?.id" @click="save()" >
-        Oppdater
-      </button>
-      <button v-if="currentItem?.id" @click="remove(currentItem)" >
-        Slett
-      </button>
-      <button v-if="!currentItem?.id" @click="save()" >
-        Registrer
-      </button>
-    </div>
-  </div>
-  
-  
   <div>
     <h2>{{ toPluralTitle(tableName) }}</h2>
     <table>

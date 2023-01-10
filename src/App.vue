@@ -3,8 +3,8 @@ import {supabase} from "./supa";
 import {store} from "./supa/store";
 import {router} from "./main";
 
-supabase.auth.getSession().then(({data, error}) => {
-  console.log('Setup: ', {data, error});
+supabase.auth.getSession().then(({data}) => {
+  // console.log('Setup: ', {data, error});
   store.session = data.session
 })
 
@@ -36,22 +36,16 @@ supabase.auth.getSession().then(({data, error}) => {
 </template>
 
 <!-- Non-scoped ?! -->
+<!--suppress CssUnusedSymbol -->
 <style>
 
 @import "https://igoradamenko.github.io/awsm.css/css/awsm_theme_gondola.css" only screen;
 
-/*
-@import url('path.css') (screen and min/max-width: 600px);
-*/
-@media screen {
-
-}
 
 @media print {
   .screen {
     display: none;
   }
-
 
   .page:not(:first-of-type) {
     break-before: page;
