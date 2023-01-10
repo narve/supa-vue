@@ -13,7 +13,13 @@ import GenericModule from './modules/api'
 import DataComponent from "./modules/api/DataComponent.vue";
 import MusicSchool from "./modules/musicschool";
 
-export const modules = [GradeModule, BeeModule, StuffModule, GenericModule, MusicSchool]
+export const modules = [
+    GradeModule,
+    BeeModule,
+    StuffModule,
+    MusicSchool,
+    GenericModule,
+]
 
 
 const myRoutes: RouterOptions = {
