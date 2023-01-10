@@ -5,11 +5,15 @@ import {supabase} from "../../supa";
 import {KVP, toKVP} from "../../supa/supa-openapi";
 
 interface Props {
-  dataTypes: string[]
+  dataTypes: string[],
+  title: string,
 }
 
 const props = withDefaults(defineProps<Props>(),
-    {dataTypes: () => []})
+    {
+      title: 'Seksjoner',
+      dataTypes: () => []
+    })
 
 
 const {dataTypes} = toRefs(props)
@@ -51,8 +55,8 @@ const getDefinition = (api: any, schemaRef: string) => {
 </script>
 
 <template>
-  <h1>Data-types</h1>
-  <p>Included: {{ dataTypes }}</p>
+  <h1>{{props.title}}</h1>
+<!--  <p>Included: {{ dataTypes }}</p>-->
   <div v-for="kvp in getPaths">
     <router-link :to="'/api' + kvp.name">
       {{ getDefinition(api, getSchemaRef(kvp))?.description || kvp.name.substring(1) }}

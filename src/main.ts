@@ -11,6 +11,9 @@ import BeeModule from './modules/bee'
 import StuffModule from './modules/stuff'
 import GenericModule from './modules/api'
 import DataComponent from "./modules/api/DataComponent.vue";
+import MusicSchool from "./modules/musicschool";
+
+export const modules = [GradeModule, BeeModule, StuffModule, GenericModule, MusicSchool]
 
 
 const myRoutes: RouterOptions = {
@@ -37,7 +40,6 @@ const myRoutes: RouterOptions = {
 const app = createApp(App);
 export const router = createRouter(myRoutes);
 
-export const modules = [GradeModule, BeeModule, StuffModule, GenericModule]
 
 modules.forEach(m => m.routes.forEach(r => router.addRoute(r)))
 
