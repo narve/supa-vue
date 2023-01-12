@@ -19,6 +19,7 @@ export const fetchDataAsync = async (client: SupabaseClient, tableName: keyof De
 
 	const openApi = await getOpenApi(supabase);
 	const table = openApi.definitions[tableName];
+
 	const fksToLoad = Object.values(table?.properties ?? {})
 		.filter(prop => prop.isFk);
 
@@ -36,5 +37,5 @@ export const fetchDataAsync = async (client: SupabaseClient, tableName: keyof De
 	console.log('got data: ', { data, error });
 
 	if (error) throw error;
-	else return { meta: openApi.definitions[tableName], data };
+	else return { openApi, meta: openApi.definitions[tableName], data };
 }

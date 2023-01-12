@@ -13,6 +13,8 @@ const data = ref([] as any[]);
 const columns = ref<string[]>([]);
 const editableColumns = ref<any[]>([]);
 const tableColumns = ref<string[]>([]);
+const canAdd = ref(false);
+const canEdit = ref(false);
 
 const currentItem = ref(null as any);
 
@@ -22,9 +24,18 @@ const refreshList = async () => {
   tableName.value = router.currentRoute.value.params.name as string;
   console.log('fetching: ', tableName.value);
   const tName: keyof Definitions = <keyof Definitions>tableName.value;
+
   fetchDataAsync(supabase, tName)
       .then((x: any) => {
         console.log('meta: ', x.meta);
+
+        const paths = x.openApi.paths;
+        const tablePath = "/" + tName;
+        canAdd.value = !!paths[tablePath].post
+        canEdit.value = !!paths[tablePath].put || !!paths[tablePath].patch
+        // canAdd.value = meta.
+
+
         data.value = x.data;
         columns.value = Object.keys(x.meta.properties);
 
@@ -69,9 +80,9 @@ const cellToString = (row: any, column: any) => {
   const cell = row[colName];
   // console.log('cell for row:', row, ' column:', column, ', colName: ', colName, ' cell: ', cell);
 
-  if(column.type === 'boolean') {
+  if (column.type === 'boolean') {
     return cell ? 'YES' : 'NO'
-  } else if(column.type === 'string') {
+  } else if (column.type === 'string') {
     return (cell === null || cell === undefined) ? '' : (cell.handle || cell.name || cell.email || cell.id || cell);
   } else {
     const stringVal = (cell === null || cell === undefined) ? '' : (cell.handle || cell.name || cell.email || cell.id || cell);
@@ -137,7 +148,7 @@ const startNew = () => {
 <template>
 
   <div>
-    <button @click="startNew">Registrer ny</button>
+    <button @click="startNew" v-if="canAdd">Registrer ny</button>
   </div>
 
 
@@ -213,7 +224,7 @@ const startNew = () => {
           {{ cellToString(row, column) }}
         </td>
         <td>
-          <button @click.prevent="edit(row)"><i class="material-icons">edit</i></button>
+          <button v-if="canEdit" @click.prevent="edit(row)"><i class="material-icons">edit</i></button>
         </td>
       </tr>
       </tbody>
