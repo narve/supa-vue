@@ -21,14 +21,17 @@ export const fetchDataAsync = async (client: SupabaseClient, tableName: keyof De
 	const table = openApi.definitions[tableName];
 
 	const fksToLoad = Object.values(table?.properties ?? {})
-		.filter(prop => prop.isFk);
+		.filter(prop => prop.isFk)
+		.filter(prop => prop.name != 'owner_id')
+	;
 
 	let select = "*";
-	for (const fk of fksToLoad) {
+	for (const fkProp of fksToLoad) {
 		// select += `, ${fk.fk.table}!${fk.name} ( id, ${fk.fk.select} )`;
 		// select += `, ${fk.fk.table}!${fk.fk.fk_name} ( id, ${fk.fk.select} )`;
-		select += `, ${fk.fk.fk_name} ( id, ${fk.fk.select} )`;
+		select += `, ${fkProp.fk.fk_name} ( id, ${fkProp.fk.select} )`;
 	}
+
 	// select += ', school!school_id (id, name)';
 	// select += ', enrollment_school_id_fkey (id, name)';
 
