@@ -6,18 +6,21 @@ import AuthComponent from './components/Auth.vue';
 import HomeComponent from "./components/Home.vue";
 import {supabase} from "./supa";
 
+// import DataComponent from "./modules/api/DataComponent.vue";
+
 import GradeModule from './modules/grades'
 import BeeModule from './modules/bee'
 import StuffModule from './modules/stuff'
 import GenericModule from './modules/api'
-import DataComponent from "./modules/api/DataComponent.vue";
 import MusicSchool from "./modules/musicschool";
+import Participation from "./modules/participation";
 
 export const modules = [
     GradeModule,
     BeeModule,
     StuffModule,
     MusicSchool,
+    Participation,
     GenericModule,
 ]
 
@@ -35,11 +38,11 @@ const myRoutes: RouterOptions = {
             name: "auth",
             component: AuthComponent,
         },
-        {
-            path: "/api/:name",
-            // name: 'show-data',
-            component: DataComponent,
-        },
+        // {
+        //     path: "/api/:name",
+        //     // name: 'show-data',
+        //     component: DataComponent,
+        // },
     ], history: createWebHistory()
 };
 

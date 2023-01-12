@@ -26,11 +26,16 @@ const profile = promisedReactive<Profile>(
           .from("profiles")
           .select(`username, website, avatar_url`)
           .eq("id", store.session?.user.id)
-          .single()
+          // .single()
 
-      if (error && status !== 406) throw error
+      console.log({data, error, status})
 
-      return data!;
+      if (error ) throw error
+
+      if(data.length == 0)
+        return {} as Profile
+
+      return data![0];
     }
 )
 
@@ -56,8 +61,8 @@ async function updateProfile() {
 
     let {error} = await supabase.from("profiles")
         .upsert(updates, {
-      // returning: "minimal", // Don't return the value after inserting
-    })
+          // returning: "minimal", // Don't return the value after inserting
+        })
 
     if (error)
       alert(error.message)
@@ -67,8 +72,8 @@ async function updateProfile() {
 }
 
 const newPassword = ref('')
-const updatePassword = async() => {
-  await supabase.auth.updateUser( {
+const updatePassword = async () => {
+  await supabase.auth.updateUser({
     password: newPassword.value
   })
 }
@@ -123,16 +128,16 @@ async function signOut() {
 
   <form @submit.prevent="updatePassword">
     <fieldset>
-      {{newPassword}}
+      {{ newPassword }}
       <div>
         <label for="password">Endre passord</label>
         <input type="password" v-model="newPassword">
       </div>
     </fieldset>
     <input
-      type="submit"
-      class="button block primary"
-      value="Sett passord"
-      :disabled="!newPassword">
+        type="submit"
+        class="button block primary"
+        value="Sett passord"
+        :disabled="!newPassword">
   </form>
 </template>

@@ -7,8 +7,10 @@ const email = ref("")
 const password = ref("")
 
 const handleMagicLogin = async () => {
-	// const emailRedirectTo = window.location.href
-	const emailRedirectTo = "http://localhost:3000"
+	const emailRedirectTo = window.location.origin
+  // console.log({emailRedirectTo})
+  // return
+	// const emailRedirectTo = "http://localhost:3000"
 	try {
 		loading.value = true
 		const { error } = await supabase.auth.signInWithOtp({
