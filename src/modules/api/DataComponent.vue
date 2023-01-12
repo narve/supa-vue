@@ -5,6 +5,8 @@ import {useRouter} from "vue-router";
 import {ref, watch} from "vue";
 import {Definitions} from "../../supa/SupaTypes";
 import {store} from "../../supa/store";
+import ItemEditor from "./ItemEditor.vue";
+import {cellTitle, toPluralTitle} from "./util";
 
 const router = useRouter();
 
@@ -33,8 +35,6 @@ const refreshList = async () => {
         const tablePath = "/" + tName;
         canAdd.value = !!paths[tablePath].post
         canEdit.value = !!paths[tablePath].put || !!paths[tablePath].patch
-        // canAdd.value = meta.
-
 
         data.value = x.data;
         columns.value = Object.keys(x.meta.properties);
@@ -85,39 +85,21 @@ const cellToString = (row: any, column: any) => {
   } else if (column.type === 'string') {
     return (cell === null || cell === undefined) ? '' : (cell.handle || cell.name || cell.email || cell.id || cell);
   } else {
+    // noinspection UnnecessaryLocalVariableJS
     const stringVal = (cell === null || cell === undefined) ? '' : (cell.handle || cell.name || cell.email || cell.id || cell);
-    return `(${JSON.stringify(column)}) ${stringVal}`
+    // return `(${JSON.stringify(column)}) ${stringVal}`
+    return stringVal
   }
 };
-
-const upcaseFirst = (s: string) => s.substring(0, 1).toUpperCase() + s.substring(1);
-
-const cellTitle = (column: any) => {
-  let colName = column.name;
-  if (colName.endsWith("_id"))
-    colName = column.name.substring(0, column.name.length - "_id".length);
-  colName = colName.replaceAll('_', ' ');
-  if (colName.startsWith('has') || colName.startsWith('is'))
-    colName += "?";
-  return upcaseFirst(colName);
-};
-
-const pluralize = (s: string) => s.endsWith("s") ? s : s + "s";
-
-const toPluralTitle = (s: string) => upcaseFirst(pluralize(s));
 
 const edit = async (item: any) => {
-  console.log('Now editing: ', item);
-  const o: any = {id: item.id}
-  for (const p of editableColumns.value) {
-    o[p.name] = item[p.name]
-  }
-  currentItem.value = o
+  // console.log('Now editing: ', item);
+  currentItem.value = JSON.parse(JSON.stringify(item))
 }
 
 const save = async () => {
   const user = store.session!.user;
-  console.log('create new', {user}, JSON.stringify(currentItem.value, null, ' '));
+  console.log('Save', {user}, JSON.stringify(currentItem.value, null, ' '));
   const {error, data} = await supabase.from(tableName.value).upsert(currentItem.value);
   if (error) {
     console.error(error.message);
@@ -129,9 +111,12 @@ const save = async () => {
   }
 };
 
-const remove = async (item: any) => {
-  console.log('remove', item);
-  const {error, data} = await supabase.from(tableName.value).delete().eq('id', item.id);
+const remove = async () => {
+  console.log('remove', currentItem);
+  if (!currentItem.value.id) {
+    throw new Error('trying to remove non-saved item!', currentItem.value)
+  }
+  const {error, data} = await supabase.from(tableName.value).delete().eq('id', currentItem.value.id);
   if (error) console.error(error);
   else {
     console.log(data);
@@ -148,62 +133,20 @@ const startNew = () => {
 <template>
 
   <div>
-    <button @click="startNew" v-if="canAdd">Registrer ny</button>
+    <button @click="startNew" v-if="canAdd && currentItem == null">Registrer ny</button>
   </div>
 
+<!--  <p>Selectors: {{selectors}}</p>-->
 
-  <div v-if="currentItem">
-    <form>
-      <fieldset>
-        <legend v-if="!currentItem.id">Opprett ny</legend>
-        <legend v-if="currentItem.id">Oppdater</legend>
-        <label v-for="field of editableColumns">
-          <!--                              <pre>{{field}}</pre>-->
-          {{ cellTitle(field) }}:
-
-          <input v-if="field.type === 'boolean'"
-                 type="checkbox"
-          />
-
-          <input v-if="field.type === 'number' && !field.isFk"
-                 v-bind:placeholder="field.name"
-                 type="number"
-          />
-
-          <textarea v-if="field.type === 'string' && field.maxLength > 64"
-                    v-model="currentItem[field.name]"
-                    v-bind:placeholder="field.name"
-                    name="field.name"
-          ></textarea>
-
-          <select v-if="field.isFk" v-model="currentItem[field.name]">
-            <option v-for="o of selectors[field.fk.table]" :key="o.id" :value="o.id">{{ o.title }}</option>
-          </select>
-
-          <input v-else-if="!field.isFk"
-                 v-model="currentItem[field.name]"
-                 v-bind:placeholder="field.name"
-                 name="field.name"
-          />
-
-        </label>
-        <div>
-          <button @click="currentItem = null">
-            Avbryt
-          </button>
-          <button v-if="currentItem?.id" @click="save()">
-            Oppdater
-          </button>
-          <button v-if="currentItem?.id" @click="remove(currentItem)">
-            Slett
-          </button>
-          <button v-if="!currentItem?.id" @click="save()">
-            Registrer
-          </button>
-        </div>
-      </fieldset>
-    </form>
-  </div>
+  <ItemEditor v-if="currentItem"
+              :item="currentItem"
+              :editableColumns="editableColumns"
+              :selectors="selectors"
+              @cancel="() => currentItem=null"
+              @save="() => save()"
+              @remove="() => remove()"
+  >
+  </ItemEditor>
 
   <div>
     <h2>{{ toPluralTitle(tableName) }}</h2>
