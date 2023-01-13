@@ -3,6 +3,7 @@ import {supabase} from "./supa";
 import {store} from "./supa/store";
 import {router} from "./main";
 
+
 supabase.auth.getSession().then(({data}) => {
   // console.log('Setup: ', {data, error});
   store.session = data.session

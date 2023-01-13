@@ -9,7 +9,8 @@ interface Props {
   title: string,
 }
 
-const props = withDefaults(defineProps<Props>(),
+const props = withDefaults(
+    defineProps<Props>(),
     {
       title: 'Seksjoner',
       dataTypes: () => []

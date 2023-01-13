@@ -38,11 +38,6 @@ const myRoutes: RouterOptions = {
             name: "auth",
             component: AuthComponent,
         },
-        // {
-        //     path: "/api/:name",
-        //     // name: 'show-data',
-        //     component: DataComponent,
-        // },
     ], history: createWebHistory()
 };
 

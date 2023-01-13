@@ -2,12 +2,23 @@
 
 import {ref} from 'vue';
 import {supabase} from "../../supa";
+import {useRouter} from "vue-router";
+
+
+const router = useRouter();
+const questionnaire_id = router.currentRoute.value.params.questionnaire_id
+
+const blank = () => (  {name: '', points: 0, comments: '', questionnaire_id})
+
 
 const questions = ref([] as any[]);
-const newItem = ref({name: '', points: 0, comments: ''})
+const newItem = ref(blank())
 
 const fetchData = async () => {
-  const {data, error} = await supabase.from('question').select();
+  const {data, error} = await supabase.from('question')
+      .select()
+      .match({questionnaire_id})
+
   questions.value = data as any[];
   if (error)
     console.log('error fetching: ', error);
@@ -18,21 +29,15 @@ fetchData()
 
 
 const save = async () => {
-  // await supabase.from('student').update({name: item.value.name, comments: item.value.comments})
-  //     .match({id: item.value.id})
-  //
-  // const toInsert = questions.value.map(qa => qa.answer).filter(a => !a.id)
-  // await supabase.from('answer').insert(toInsert)
-  //
-
   const toUpdate = questions.value
+  console.log('save: ', toUpdate.length, !!newItem.value.name)
   for (const u of toUpdate) {
     await supabase.from('question').update(u).match({id: u.id})
   }
 
   if (newItem.value.name && newItem.value.points > 0) {
     await supabase.from('question').insert(newItem.value)
-    newItem.value = {name: '', points: 0, comments: ''}
+    newItem.value = blank()
   }
 
   await fetchData()
@@ -44,12 +49,14 @@ const save = async () => {
 <template>
 
   <h2>Spørsmål</h2>
-  <button @click="fetchData">(Last data på nytt)</button>
+  <p>
+    <button @click="fetchData">(Last data på nytt)</button>
+  </p>
 
   <table>
     <thead>
     <tr>
-      <th>Id</th>
+<!--      <th>Id</th>-->
       <th>Oppgave</th>
       <th>Maks poeng</th>
       <th>Kommentar</th>
@@ -58,7 +65,7 @@ const save = async () => {
     </thead>
     <tbody>
     <tr v-for="q in questions" :key="q.id">
-      <th>{{ q.id }}</th>
+<!--      <th>{{ q.id }}</th>-->
       <td>
         <input v-model="q.name">
       </td>
@@ -70,7 +77,9 @@ const save = async () => {
       </td>
     </tr>
     <tr>
-      <th>(Nytt spørsmål)</th>
+      <th colspan="*">(Nytt spørsmål)</th>
+    </tr>
+    <tr>
       <td>
         <input v-model="newItem.name">
       </td>
@@ -84,6 +93,7 @@ const save = async () => {
     </tbody>
   </table>
 
+  <p>New item: {{ newItem }}</p>
 
   <input type="submit" value="Lagre" @click.prevent="save">
 

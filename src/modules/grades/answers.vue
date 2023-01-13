@@ -2,33 +2,34 @@
 
 import {ref} from 'vue';
 import {supabase} from "../../supa";
-import {router} from "../../main";
+import {useRouter} from "vue-router";
 
-const items = ref([] as any[]);
-const item = ref({} as any);
-// const answers = ref([] as any[]);
+const router = useRouter();
+const questionnaire_id = router.currentRoute.value.query.questionnaire_id
+const student_id = router.currentRoute.value.query.student_id
+const blank = (question_id:number) => ({questionnaire_id, student_id, question_id, points: 0, comments: ''})
 
+const answers = ref([] as any[]);
+const student = ref({} as any);
 const questions = ref([] as any[]);
 
-const id = ref(router.currentRoute.value.params.id as string)
-
 const fetch = async () => {
-  const {data, error} = await supabase.from('student').select().match({id:id.value});
-  items.value = data as any[];
-  console.log('items: ', items.value)
-  item.value = items.value[0];
+  const {data, error} = await supabase.from('student').select().match({id: student_id});
+  answers.value = data as any[];
+  console.log('items: ', answers.value)
+  student.value = answers.value[0];
   if (error)
     console.log('error fetching: ', error);
 
   const {data: _questions} = await supabase.from('question').select().order('id')
   const quest = _questions as any[]
 
-  const {data: _answers} = await supabase.from('answer').select().match({student_id: id.value})
+  const {data: _answers} = await supabase.from('answer').select().match({student_id})
   const ans = _answers as any[]
 
   for (const q of (quest as any[])) {
     const a = ans.find((x: any) => x.question_id == q.id)
-    q.answer = a || {question_id: q.id, points: 0, comments: '', student_id: item.value.id}
+    q.answer = a || blank(q.id)
     // console.log('q with a: ', q)
   }
 
@@ -41,8 +42,8 @@ fetch();
 
 
 const save = async () => {
-  await supabase.from('student').update({name: item.value.name, comments: item.value.comments})
-      .match({id: item.value.id})
+  await supabase.from('student').update({name: student.value.name, comments: student.value.comments})
+      .match({id: student.value.id})
 
   const toInsert = questions.value.map(qa => qa.answer).filter(a => !a.id)
   await supabase.from('answer').insert(toInsert)
@@ -59,20 +60,20 @@ const save = async () => {
 
 <template>
 
-  <h1>Student no {{ id }}: {{ item.name }}</h1>
+  <h1>Student no {{ student_id }}: {{ student.name }}</h1>
   <button @click="fetch()">FETCH/RELOAD</button>
 
   <button @click="fetch()">(Last data på nytt)</button>
 
-  <h2>{{ item.name }}</h2>
+  <h2>{{ student.name }}</h2>
 
   <form>
     <label>Elevens navn (hvis det skal endres!)
     </label>
-    <input v-model="item.name">
+    <input v-model="student.name">
 
     <label>Kommentar på prøven: </label>
-    <textarea v-model="item.comments"></textarea>
+    <textarea v-model="student.comments"></textarea>
   </form>
 
   <table>
@@ -104,8 +105,7 @@ const save = async () => {
 
 
   <div>
-    <label>Lagre</label>
-    <input type="submit" value="Lagre" @click.prevent="save">
+    <button @click.prevent="save">Lagre</button>
   </div>
 
 </template>

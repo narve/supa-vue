@@ -10,6 +10,25 @@ import {cellTitle, toPluralTitle} from "./util";
 
 const router = useRouter();
 
+interface Link {
+  href: string;
+  displayName: string;
+
+}
+
+interface Props {
+  columns?: string;
+  tableName?: string;
+  links?: (o: any) => Link[]
+}
+
+const props = withDefaults(
+    defineProps<Props>(),
+    {
+      columns: 'a',
+      links: undefined, //() => []
+    })
+
 const tableName = ref('...')
 const data = ref([] as any[]);
 const columns = ref<string[]>([]);
@@ -23,7 +42,9 @@ const currentItem = ref(null as any);
 const selectors = ref({} as any);
 
 const refreshList = async () => {
-  tableName.value = router.currentRoute.value.params.name as string;
+  tableName.value =
+      props.tableName ||
+      router.currentRoute.value.params.name as string;
   console.log('fetching: ', tableName.value);
   const tName: keyof Definitions = <keyof Definitions>tableName.value;
 
@@ -125,6 +146,8 @@ const remove = async () => {
   }
 }
 
+const getLinks = (item: any) => props.links ? props.links(item) : []
+
 const startNew = () => {
   currentItem.value = {}
 }
@@ -136,7 +159,7 @@ const startNew = () => {
     <button @click="startNew" v-if="canAdd && currentItem == null">Registrer ny</button>
   </div>
 
-<!--  <p>Selectors: {{selectors}}</p>-->
+  <!--  <p>Selectors: {{selectors}}</p>-->
 
   <ItemEditor v-if="currentItem"
               :item="currentItem"
@@ -156,6 +179,8 @@ const startNew = () => {
         <th v-for="column in tableColumns">
           {{ cellTitle(column) }}
         </th>
+        <th v-if="props.links">Lenker</th>
+        <th>&nbsp;</th>
       </tr>
       </thead>
       <tbody>
@@ -165,6 +190,9 @@ const startNew = () => {
       <tr v-for="row of data">
         <td v-for="column of tableColumns">
           {{ cellToString(row, column) }}
+        </td>
+        <td v-if="props.links">
+          <a v-for="l of getLinks(row)" :href="l.href">{{l.title}}</a>
         </td>
         <td>
           <button v-if="canEdit" @click.prevent="edit(row)"><i class="material-icons">edit</i></button>

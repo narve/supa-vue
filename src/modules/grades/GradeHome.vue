@@ -4,13 +4,10 @@
 
   <nav class="module">
     <ul>
-      <router-link to="/grades/students">Students</router-link>
+      <router-link to="/grades/questionnaires">Prøver</router-link>
     </ul>
     <ul>
-      <router-link to="/grades/questions">Questions</router-link>
-    </ul>
-    <ul>
-      <router-link to="/grades/report">Report</router-link>
+      <router-link to="/grades/students">Elever</router-link>
     </ul>
   </nav>
 

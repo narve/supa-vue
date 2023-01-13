@@ -1,7 +1,11 @@
 <script setup lang="ts">
 import {ref} from 'vue';
 import {supabase} from "../../supa";
+import {useRouter} from "vue-router";
 // import {supabase} from '';
+
+const router = useRouter();
+const questionnaire_id = router.currentRoute.value.params.questionnaire_id
 
 const isLoading = ref(false)
 const students = ref([] as any[]);
@@ -106,8 +110,8 @@ const printIt = () => {
 
 
   activateCSSForPDF()
-  ;(window as any)['html2pdf']().set(opt).from(element).save().finally(deactivateCSSForPDF);
-  // window.html2pdf(element);
+  ; // noinspection JSVoidFunctionReturnValueUsed
+  (window as any)['html2pdf']().set(opt).from(element).save().finally(deactivateCSSForPDF);
 }
 
 </script>
@@ -182,7 +186,9 @@ Oppgave 15,0,2.5,3,3,3,0,2,3,0,2,2,3,3,2.5,3,1.5,2,3,1,0,2</textarea>
 
     <div class="page" v-for="s of students" :key="s.id">
       <h1>Elev: {{ s.name }}</h1>
-
+      <p>
+        <a :href="`../answers?questionnaire_id=${questionnaire_id}&student_id=${s.id}`">Rediger svar</a>
+      </p>
       <table>
         <thead>
         <tr>
@@ -222,6 +228,7 @@ Oppgave 15,0,2.5,3,3,3,0,2,3,0,2,2,3,3,2.5,3,1.5,2,3,1,0,2</textarea>
 
 <style scoped>
 
+/*noinspection CssUnusedSymbol*/
 .printing, .printing > * {
   background: white;
   color: black;
