@@ -1,19 +1,22 @@
 <script setup lang="ts">
 
-import {fetchDataAsync, supabase} from "../../supa";
+import {getFatSelect, supabase} from "../../supa";
 import {useRouter} from "vue-router";
-import {ref, watch} from "vue";
-import {Definitions} from "../../supa/SupaTypes";
+import {onActivated, onMounted, ref, watch} from "vue";
 import {store} from "../../supa/store";
 import ItemEditor from "./ItemEditor.vue";
 import {cellTitle, toPluralTitle} from "./util";
+import {getOpenApi} from "../../supa/supa-openapi";
+import {OpenApi, PropertyDef, RelationRef} from "../../supa/openapi-def";
+import {standardEmits} from "../../utils/standardEmits";
+
+const emit = defineEmits(standardEmits)
 
 const router = useRouter();
 
 interface Link {
   href: string;
-  displayName: string;
-
+  title: string;
 }
 
 interface Props {
@@ -29,71 +32,115 @@ const props = withDefaults(
       links: undefined, //() => []
     })
 
-const tableName = ref('...')
+const openApi = ref({} as OpenApi)
+const tableDef = ref({} as RelationRef)
+
+
+const tableName = ref('[tableName')
+const tableTitle = ref('[tableTitle]' as any)
 const data = ref([] as any[]);
+
 const columns = ref<string[]>([]);
-const editableColumns = ref<any[]>([]);
-const tableColumns = ref<string[]>([]);
+
+const editableProps = ref<PropertyDef[]>([]);
+const tableColumns = ref<PropertyDef[]>([]);
+
 const canAdd = ref(false);
 const canEdit = ref(false);
-
 const currentItem = ref(null as any);
-
 const selectors = ref({} as any);
 
+const filters = router.currentRoute.value.query
+tableName.value = router.currentRoute.value.params['id'] as string
+
+const debugObject = ref(null as any)
+
+console.log('query: ', filters)
+
 const refreshList = async () => {
+  emit('startloading', 'Loading list')
+
   tableName.value =
       props.tableName ||
       router.currentRoute.value.params.name as string;
   console.log('fetching: ', tableName.value);
-  const tName: keyof Definitions = <keyof Definitions>tableName.value;
 
-  fetchDataAsync(supabase, tName)
-      .then((x: any) => {
-        console.log('meta: ', x.meta);
+  // const tName: keyof Definitions = <keyof Definitions>tableName.value;
+  const tName = tableName.value;
 
-        const paths = x.openApi.paths;
-        const tablePath = "/" + tName;
+  openApi.value = await getOpenApi(supabase)
+  const paths = openApi.value.paths;
+
+
+  tableTitle.value = openApi.value.definitions[tName].description || toPluralTitle(tableName.value)
+        const tablePath = "/" + tableName.value;
+        // debugObject.value = {tablePath, paths}
         canAdd.value = !!paths[tablePath].post
         canEdit.value = !!paths[tablePath].put || !!paths[tablePath].patch
 
-        data.value = x.data;
-        columns.value = Object.keys(x.meta.properties);
+  const select = getFatSelect(openApi.value, tName)
 
-        editableColumns.value = columns.value
-            .map(c => x.meta.properties[c])
-            .filter(c => !c.isPk)
+  const {data: d, error: e} = await supabase
+      .from(tName)
+      .select(select)
+      .match(filters)
+  if(e) {
+    emit('error', e)
+    return
+  }
+  console.log({d, e})
 
-        tableColumns.value = columns.value
-            .map(c => x.meta.properties[c])
-            .filter(c => !c.isPk);
+  data.value = d as any[]
 
-        const fkTablesToFetch = Object.keys(x.meta.properties)
-            .map(propName => x.meta.properties[propName])
-            .filter(prop => prop.isFk)
-            .map(prop => prop.fk.table);
+  tableDef.value = openApi.value.definitions[tName]
+  columns.value = Object.keys(tableDef.value.properties);
 
-        console.log("fkTablesToFetch: ", fkTablesToFetch);
+  // tableDef.value.properties['a'].name
 
-        for (const fkTable of new Set(fkTablesToFetch)) {
-          supabase.from(fkTable).select("*").then((r: { data: any, error: any }) => {
-            const options = r.data.map((d: any) => ({
-              id: d.id,
-              title: d.name || d.title || d.label || d.email || d.id || d
-            }));
-            console.log('adding to selectors: ', fkTable, options);
-            selectors.value[fkTable] = options;
-          });
-        }
-      });
+  editableProps.value = columns.value
+      .map(c => tableDef.value.properties[c])
+      .filter(c => !c.isPk)
+      .filter(c => c.name != 'owner_id')
+
+  tableColumns.value = editableProps.value
+
+  const fkTablesToFetch = Object.keys(tableDef.value.properties)
+      .map(propName => tableDef.value.properties[propName])
+      .filter(prop => prop.isFk)
+      .map(prop => prop.fk.table);
+
+  console.log("fkTablesToFetch: ", fkTablesToFetch);
+
+  for (const fkTable of new Set(fkTablesToFetch)) {
+    supabase.from(fkTable)
+        .select("*")
+        .then((r: { data: any, error: any }) => {
+          const options = r.data.map((d: any) => ({
+            id: d.id,
+            title: d.name || d.title || d.label || d.email || d.id || d
+          }));
+          console.log('adding to selectors: ', fkTable, options);
+          selectors.value[fkTable] = options;
+        });
+  }
+  emit('doneloading')
 }
 
-refreshList();
 
 watch(
     () => router.currentRoute.value.params,
     () => refreshList());
 
+onMounted(() => {
+  console.log('Mounting: students ------------------------------ ')
+  refreshList();
+})
+
+onActivated(() => {
+  console.log('Activating: students ------------------------------ ')
+  refreshList();
+
+})
 
 const cellToString = (row: any, column: any) => {
   const colName = (column.isFk && !!column.fk.fk_name) ? column.fk.fk_name : column.name;
@@ -113,9 +160,15 @@ const cellToString = (row: any, column: any) => {
   }
 };
 
+const blank = () => ({})
+
 const edit = async (item: any) => {
   // console.log('Now editing: ', item);
-  currentItem.value = JSON.parse(JSON.stringify(item))
+  currentItem.value = blank()
+  currentItem.value.id = item.id
+  for (const p of editableProps.value) {
+    currentItem.value[p.name] = item[p.name]
+  }
 }
 
 const save = async () => {
@@ -123,8 +176,7 @@ const save = async () => {
   console.log('Save', {user}, JSON.stringify(currentItem.value, null, ' '));
   const {error, data} = await supabase.from(tableName.value).upsert(currentItem.value);
   if (error) {
-    console.error(error.message);
-    alert('Error: ' + error.message);
+    emit('error', error)
   } else {
     console.log("Saved: ", {data});
     currentItem.value = null;
@@ -149,21 +201,17 @@ const remove = async () => {
 const getLinks = (item: any) => props.links ? props.links(item) : []
 
 const startNew = () => {
-  currentItem.value = {}
+  currentItem.value = {...filters}
 }
 
 </script>
 <template>
 
-  <div>
-    <button @click="startNew" v-if="canAdd && currentItem == null">Registrer ny</button>
-  </div>
-
   <!--  <p>Selectors: {{selectors}}</p>-->
 
   <ItemEditor v-if="currentItem"
               :item="currentItem"
-              :editableColumns="editableColumns"
+              :editableProps="editableProps"
               :selectors="selectors"
               @cancel="() => currentItem=null"
               @save="() => save()"
@@ -172,7 +220,16 @@ const startNew = () => {
   </ItemEditor>
 
   <div>
-    <h2>{{ toPluralTitle(tableName) }}</h2>
+    <h2>{{ tableTitle }}</h2>
+    <!--    <p>OpenApi: {{ openApi }}</p>-->
+<!--    <p>Table def: {{ tableDef }}</p>-->
+<!--    <p>Table columns: {{ tableColumns }}</p>-->
+    <p v-if="debugObject">Debug: {{ debugObject }}</p>
+
+    <div>
+      <button @click="startNew" v-if="canAdd && currentItem == null">Registrer ny</button>
+    </div>
+
     <table>
       <thead>
       <tr>
@@ -192,7 +249,7 @@ const startNew = () => {
           {{ cellToString(row, column) }}
         </td>
         <td v-if="props.links">
-          <a v-for="l of getLinks(row)" :href="l.href">{{l.title}}</a>
+          <a v-for="l of getLinks(row)" :href="l.href">{{ l.title }}</a>
         </td>
         <td>
           <button v-if="canEdit" @click.prevent="edit(row)"><i class="material-icons">edit</i></button>

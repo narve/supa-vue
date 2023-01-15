@@ -4,7 +4,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc --noEmit && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "types": "npx supabase gen types typescript --project-id xupzhicrqmyvtgztrmjb --schema public > src/types/supabase.ts\n"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.2.3",

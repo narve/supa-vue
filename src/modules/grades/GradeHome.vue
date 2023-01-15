@@ -1,6 +1,12 @@
+<script setup lang="ts">
+import {standardEmits} from "../../utils/standardEmits";
+
+const emit = defineEmits(standardEmits)
+
+</script>
 <template>
 
-  <h1>Grades</h1>
+  <h1>Prøvehåndtering</h1>
 
   <nav class="module">
     <ul>
@@ -11,6 +17,10 @@
     </ul>
   </nav>
 
-  <router-view></router-view>
+  <router-view
+      @startloading="(args) => emit('startloading', args)"
+      @doneloading="() => emit('doneloading', args)"
+      @error="(args) => emit('error', args)"
+  ></router-view>
 
 </template>

@@ -3,38 +3,97 @@
 import {ref} from 'vue';
 import {supabase} from "../../supa";
 import {useRouter} from "vue-router";
+import {standardEmits} from "../../utils/standardEmits";
+import {PostgrestError} from "@supabase/supabase-js";
 
+
+const debugObj = ref(undefined as any)
+const emit = defineEmits(standardEmits)
 const router = useRouter();
+
 const questionnaire_id = router.currentRoute.value.query.questionnaire_id
 const student_id = router.currentRoute.value.query.student_id
-const blank = (question_id:number) => ({questionnaire_id, student_id, question_id, points: 0, comments: ''})
 
-const answers = ref([] as any[]);
+const blank = (question_id: number) => (
+    {
+      question_id,
+      questionnaire_id,
+      student_id,
+      points: undefined,
+      comments: ''
+    }
+)
+
+
 const student = ref({} as any);
 const questions = ref([] as any[]);
 
+const error = ref(null as PostgrestError | null)
+
 const fetch = async () => {
-  const {data, error} = await supabase.from('student').select().match({id: student_id});
-  answers.value = data as any[];
-  console.log('items: ', answers.value)
-  student.value = answers.value[0];
-  if (error)
-    console.log('error fetching: ', error);
-
-  const {data: _questions} = await supabase.from('question').select().order('id')
-  const quest = _questions as any[]
-
-  const {data: _answers} = await supabase.from('answer').select().match({student_id})
-  const ans = _answers as any[]
-
-  for (const q of (quest as any[])) {
-    const a = ans.find((x: any) => x.question_id == q.id)
-    q.answer = a || blank(q.id)
-    // console.log('q with a: ', q)
+  emit('startloading', 'Henter student')
+  ;({data: student.value, error: error.value} = await supabase
+          .from('student')
+          .select()
+          .match({id: student_id})
+          .single()
+  )
+  if (error.value) {
+    emit('error', error.value)
+    return
   }
 
-  questions.value = quest;
-  // answers.value = ans!;
+  // const {data: _student, error: e1} = await supabase
+  //     .from('student')
+  //     .select()
+  //     .match({id: student_id})
+  //     .single()
+  // student.value = _student;
+  // if(e1) {
+  //   emit('error', e1)
+  //   return
+  // }
+
+  // throw Error('hei')
+
+  emit('startloading', 'Henter spørsmål')
+  const {data: _questions, error: e2} = await supabase
+      .from('question')
+      .select('*, answer(*)')
+      .match({questionnaire_id})
+      .order('name')
+  if (e2) {
+    emit('error', e2)
+    return
+  }
+
+  for (const q of _questions) {
+    // console.log('fixup non-answers: ', q.answer)
+    if (q.answer.length == 0) q.answer = [blank(q.id)]
+    // console.log('fixupED non-answers: ', q.answer)
+  }
+  questions.value = _questions;
+  debugObj.value = JSON.stringify(_questions, null, '   ')
+
+
+  // emit('startloading', 'Henter besvarelse')
+  // const {data: _answers, error: e3} = await supabase
+  //     .from('answer')
+  //     .select().match({student_id, questionnaire_id})
+  // if (e3) {
+  //   emit('error', e3)
+  //   return
+  // }
+
+  // debugObj.value = _answers
+
+  emit('doneloading')
+
+  // questions.value = _questions;
+  // for (const q of (questions.value)) {
+  //   const a = _answers.find((x: any) => x.question_id == q.id)
+  //   q.answer = a || blank(q.id)
+  // }
 
 }
 
@@ -42,17 +101,24 @@ fetch();
 
 
 const save = async () => {
-  await supabase.from('student').update({name: student.value.name, comments: student.value.comments})
+  emit('startloading', 'Oppdaterer student')
+  await supabase
+      .from('student')
+      .update({name: student.value.name, comments: student.value.comments})
       .match({id: student.value.id})
 
-  const toInsert = questions.value.map(qa => qa.answer).filter(a => !a.id)
+  const toInsert = questions.value.map(qa => qa.answer)
+      .filter(a => !a.id)
+      .filter(a => !!a.points)
+  emit('startloading', `Setter inn ${toInsert.length} nye svar`)
   await supabase.from('answer').insert(toInsert)
 
   const toUpdate = questions.value.map(qa => qa.answer).filter(a => !!a.id)
+  emit('startloading', `Oppdaterer ${toInsert.length} svar`)
   for (const u of toUpdate) {
     await supabase.from('answer').update(u).match({id: u.id})
   }
-
+  emit('doneloading')
 }
 
 </script>
@@ -61,9 +127,15 @@ const save = async () => {
 <template>
 
   <h1>Student no {{ student_id }}: {{ student.name }}</h1>
-  <button @click="fetch()">FETCH/RELOAD</button>
 
-  <button @click="fetch()">(Last data på nytt)</button>
+  <div v-if="debugObj">
+    <p>
+      <button @click="fetch()">(Last data på nytt)</button>
+    </p>
+    <pre>
+      {{ debugObj }}
+    </pre>
+  </div>
 
   <h2>{{ student.name }}</h2>
 
@@ -88,16 +160,17 @@ const save = async () => {
     </tr>
     </thead>
     <tbody>
-    <tr v-for="q in questions" :key="q.id">
+    <tr v-for="q of questions" :key="q.id">
       <td>{{ q.id }}</td>
       <td>{{ q.name }}</td>
       <td>{{ q.points }}</td>
 
       <td>
-        <input name="points" v-model="q.answer.points" type="number" :max="q.points" :min="0">
+<!--        {{ q.answer }}-->
+        <input name="points" v-model="q.answer[0].points" type="number" :max="q.points" :min="0">
       </td>
       <td>
-        <input name="comments" v-model="q.answer.comments">
+        <input name="comments" v-model="q.answer[0].comments">
       </td>
     </tr>
     </tbody>

@@ -2,6 +2,8 @@
 import {supabase} from "./supa";
 import {store} from "./supa/store";
 import {router} from "./main";
+import {ref} from "vue";
+import {PostgrestError} from "@supabase/supabase-js";
 
 
 supabase.auth.getSession().then(({data}) => {
@@ -9,9 +11,42 @@ supabase.auth.getSession().then(({data}) => {
   store.session = data.session
 })
 
+const isLoading = ref(false)
+const loadText = ref(null as string|null)
+
+const onStartLoading = (args:any) => {
+  console.log('start loading:', args)
+  isLoading.value = true
+  loadText.value = args
+}
+const onDoneLoading = () => {
+  isLoading.value = false
+  loadText.value = null
+}
+
+const onError = (error: PostgrestError) => {
+  isLoading.value = true
+  loadText.value = error.message
+  setTimeout(onDoneLoading, 2500)
+}
+
+const onUncaughtError = (msg: string) => {
+  // console.log(evt)
+  isLoading.value = true
+  loadText.value = "Uncaught error: " + msg
+  setTimeout(onDoneLoading, 2500)
+}
+
+window.addEventListener('error', (args) => onUncaughtError(args.message))
+window.addEventListener('unhandledrejection', (args) => onUncaughtError(args.reason?.message))
+
 </script>
 
 <template>
+
+  <div class="loading-indicator" v-if="isLoading">
+    {{loadText || 'Loading'}}
+  </div>
 
   <div style="float:right; display:inline-block;">
     <RouterLink to="/api">
@@ -30,7 +65,11 @@ supabase.auth.getSession().then(({data}) => {
 
   <section>
     <!--    <Suspense>-->
-    <router-view></router-view>
+    <router-view
+        @startloading="onStartLoading"
+        @doneloading="onDoneLoading"
+        @error="onError"
+    ></router-view>
   </section>
 
 

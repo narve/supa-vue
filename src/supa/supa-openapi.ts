@@ -1,14 +1,14 @@
 import {SupabaseClient} from '@supabase/supabase-js';
-import {OpenApiData} from './SupaTypes';
+import {OpenApi} from "./openapi-def";
 
 const log = (...args: any[]) => {
-    console.debug("[oapi]", ...args);
+    // console.debug("[oapi]", ...args);
 };
 
 export const getOpenApi = async (client: SupabaseClient) => {
     const {data, error} = await client.from("").select('*');
     if (data) {
-        const typedData = data as unknown as OpenApiData;
+        const typedData = data as unknown as OpenApi;
         processOpenApi(typedData);
         return typedData;
     } else {

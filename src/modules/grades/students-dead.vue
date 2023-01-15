@@ -1,9 +1,10 @@
 <script setup lang="ts">
 
-import {ref} from 'vue';
+import {onMounted, ref} from 'vue';
 import {supabase} from "../../supa";
 
 const items = ref([] as any[]);
+const newStudent = ref({})
 
 const fetchData = async () => {
   const {data, error} = await supabase.from('student').select();
@@ -12,7 +13,6 @@ const fetchData = async () => {
     console.log('error fetching: ', error);
 }
 
-const newStudent = ref('')
 
 const addStudent = async () => {
   console.log('add student: ', newStudent.value)
@@ -22,21 +22,27 @@ const addStudent = async () => {
 }
 
 
-fetchData();
+
+onMounted( () => {
+  console.log('mounted students!');
+  fetchData();
+  newStudent.value = {}
+})
+
 
 </script>
 
 <template>
 
-  <h1>Students</h1>
+  <h1>Elever2</h1>
 
-  <button @click="fetchData">FETCH</button>
+<!--  <button @click="fetchData">FETCH</button>-->
 
   <ul>
     <li v-for="item of items" :key="item">
-      <a :href="`/grades/student/${item.id}`">
+      <router-link :to="`/grades/student/${item.id}`">
         {{ item.name }}
-      </a>
+      </router-link>
     </li>
   </ul>
 

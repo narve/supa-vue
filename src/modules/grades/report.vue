@@ -2,12 +2,14 @@
 import {ref} from 'vue';
 import {supabase} from "../../supa";
 import {useRouter} from "vue-router";
-// import {supabase} from '';
+import {standardEmits} from "../../utils/standardEmits";
 
 const router = useRouter();
-const questionnaire_id = router.currentRoute.value.params.questionnaire_id
+const questionnaire_id = router.currentRoute.value.query.questionnaire_id
 
-const isLoading = ref(false)
+const emit = defineEmits(standardEmits)
+
+
 const students = ref([] as any[]);
 const questions = ref([] as any[]);
 const averageScore = ref(0);
@@ -28,25 +30,36 @@ const gradeForStudent = (id: number) =>
 const answer = (studentId: number, questionId: number) => {
   const student = students.value.find(s => s.id == studentId);
   const answer = student.answer.find((a: any) => a.question_id == questionId)
-  return answer || {points: 0, comments: '(Ubesvart)'}
+  return answer || {points: '(N/A)', comments: '(Ubesvart)'}
 }
 
 const fetch = async () => {
-  isLoading.value = true
-  const {data: _questions} = await supabase.from('question').select().order('id')
+  emit('startloading', 'Henter spørsmål')
+  const {data: _questions, error: e1} = await supabase.from('question')
+      .select()
+      .order('id')
+      .match({questionnaire_id})
+  if (e1) {
+    emit('error', e1)
+    return
+  }
   questions.value = _questions as any[]
-  const {data: _students, error: _studentsError} = await supabase.from('student')
+
+  emit('startloading', 'Henter studenter')
+  const {data: _students, error: e2} = await supabase.from('student')
       .select('*, answer(*)')
       .order('name');
   students.value = _students as any[];
-  if (_studentsError)
-    console.log('error fetching: ', _studentsError);
+  if (e2) {
+    emit('error', e2)
+    return
+  }
 
   totalPoints.value = questions.value.map(q => q.points).reduce((a, b) => a + b, 0)
   const scores = students.value.map(s => s.answer.map((a: any) => a.points).reduce((a: number, b: number) => a + b, 0))
 
   averageScore.value = Math.round(10 * scores.reduce((a, b) => a + b, 0) / students.value.length) / 10
-  isLoading.value = false
+  emit('doneloading')
 }
 
 fetch()
@@ -118,7 +131,7 @@ const printIt = () => {
 
 <template>
 
-  <div class="loading-indicator" v-if="isLoading">LOADING...</div>
+  <!--  <div class="loading-indicator" v-if="isLoading">LOADING...</div>-->
 
   <div class="screen">
 
@@ -186,8 +199,9 @@ Oppgave 15,0,2.5,3,3,3,0,2,3,0,2,2,3,3,2.5,3,1.5,2,3,1,0,2</textarea>
 
     <div class="page" v-for="s of students" :key="s.id">
       <h1>Elev: {{ s.name }}</h1>
-      <p>
-        <a :href="`../answers?questionnaire_id=${questionnaire_id}&student_id=${s.id}`">Rediger svar</a>
+      <p class="screen">
+        <b>Href: {{`answers?questionnaire_id=${questionnaire_id}&student_id=${s.id}`}}</b>
+        <a :href="`/grades/answers?questionnaire_id=${questionnaire_id}&student_id=${s.id}`">Rediger svar</a>
       </p>
       <table>
         <thead>
@@ -196,7 +210,8 @@ Oppgave 15,0,2.5,3,3,3,0,2,3,0,2,2,3,3,2.5,3,1.5,2,3,1,0,2</textarea>
           <th>Maks Poeng</th>
           <!--            <th>Kommentar</th>-->
           <th>Elevens poeng</th>
-          <!--            <th>Kommentar</th>-->
+          <!--          <th>Elevens poeng</th>-->
+          <th>Kommentar</th>
         </tr>
         </thead>
         <tbody>
@@ -208,9 +223,9 @@ Oppgave 15,0,2.5,3,3,3,0,2,3,0,2,2,3,3,2.5,3,1.5,2,3,1,0,2</textarea>
           <td>
             {{ answer(s.id, q.id).points }}
           </td>
-          <!--            <td> &nbsp;-->
-          <!--              {{ answer(s.id, q.id).comments }}-->
-          <!--            </td>-->
+          <td> &nbsp;
+            {{ answer(s.id, q.id).comments }}
+          </td>
         </tr>
 
         </tbody>

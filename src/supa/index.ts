@@ -2,7 +2,24 @@
 
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { getOpenApi } from "./supa-openapi";
-import { Definitions } from './SupaTypes';
+import {OpenApi, Definitions, RelationRef} from "./openapi-def";
+
+export const getFatSelect = (openApi: OpenApi, tableName: string) => {
+	const table:RelationRef = openApi.definitions[tableName];
+	const fksToLoad = Object.values(table?.properties ?? {})
+		.filter(prop => prop.isFk)
+		.filter(prop => prop.name != 'owner_id')
+
+	let select = "*";
+	for (const fkProp of fksToLoad) {
+		// select += `, ${fk.fk.table}!${fk.name} ( id, ${fk.fk.select} )`;
+		// select += `, ${fk.fk.table}!${fk.fk.fk_name} ( id, ${fk.fk.select} )`;
+		select += `, ${fkProp.fk.fk_name} ( id, ${fkProp.fk.select} )`;
+	}
+
+	return select
+}
+
 
 export const activeSupabaseConfig = Object.freeze({
 	name: "narve",
@@ -14,31 +31,17 @@ const getClient = () => createClient(activeSupabaseConfig.base_url, activeSupaba
 
 export const supabase = getClient()
 
-export const fetchDataAsync = async (client: SupabaseClient, tableName: keyof Definitions) => {
-	console.log('table: ', tableName);
-
-	const openApi = await getOpenApi(supabase);
-	const table = openApi.definitions[tableName];
-
-	const fksToLoad = Object.values(table?.properties ?? {})
-		.filter(prop => prop.isFk)
-		.filter(prop => prop.name != 'owner_id')
-	;
-
-	let select = "*";
-	for (const fkProp of fksToLoad) {
-		// select += `, ${fk.fk.table}!${fk.name} ( id, ${fk.fk.select} )`;
-		// select += `, ${fk.fk.table}!${fk.fk.fk_name} ( id, ${fk.fk.select} )`;
-		select += `, ${fkProp.fk.fk_name} ( id, ${fkProp.fk.select} )`;
-	}
-
-	// select += ', school!school_id (id, name)';
-	// select += ', enrollment_school_id_fkey (id, name)';
-
-	console.log('using select: ', select);
-	const { data, error } = await getClient().from(tableName).select(select);
-	console.log('got data: ', { data, error });
-
-	if (error) throw error;
-	else return { openApi, meta: openApi.definitions[tableName], data };
-}
+// export const fetchDataAsync = async (client: SupabaseClient, tableName: keyof Definitions) => {
+//
+// 	console.log('table: ', tableName)
+//
+// 	const openApi:OpenApi = await getOpenApi(supabase)
+// 	const select = getFatSelect(openApi, tableName)
+//
+// 	console.log('using select: ', select);
+// 	const { data, error } = await getClient().from(tableName).select(select);
+// 	console.log('got data: ', { data, error });
+//
+// 	if (error) throw error;
+// 	else return { openApi, meta: openApi.definitions[tableName], data };
+// }
