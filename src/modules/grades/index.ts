@@ -4,6 +4,7 @@ import Questions from "./questions-dead.vue";
 import Report from "./report.vue";
 import Answers from "./answers.vue";
 import DataComponent from "../api/DataComponent.vue";
+import QuestionAsRow from "./question-as-rows.vue";
 
 const name = 'grades'
 const title = 'Grades'
@@ -35,6 +36,7 @@ const routes = <RouteRecordRaw[]>[
                         {href: `/api/question?questionnaire_id=${o.id}`, title: 'Spørsmål (API)'},
                         {href: `questions?questionnaire_id=${o.id}`, title: 'Spørsmål'},
                         {href: `report?questionnaire_id=${o.id}`, title: 'Oversikt'},
+                        {href: `questions-as-rows?questionnaire_id=${o.id}`, title: 'Tabellvisning'},
                     ]
                 }
             },
@@ -45,6 +47,10 @@ const routes = <RouteRecordRaw[]>[
             {
                 path: 'report',
                 component: Report,
+            },
+            {
+                path: 'questions-as-rows',
+                component: QuestionAsRow,
             },
         ]
 

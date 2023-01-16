@@ -1,8 +1,8 @@
 // noinspection SpellCheckingInspection
 
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { getOpenApi } from "./supa-openapi";
-import {OpenApi, Definitions, RelationRef} from "./openapi-def";
+import { createClient } from '@supabase/supabase-js';
+import {OpenApi, RelationRef} from "./openapi-def";
+import {Database} from "../types";
 
 export const getFatSelect = (openApi: OpenApi, tableName: string) => {
 	const table:RelationRef = openApi.definitions[tableName];
@@ -27,7 +27,7 @@ export const activeSupabaseConfig = Object.freeze({
 	client_key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlhdCI6MTYxMDExNjg5NCwiZXhwIjoxOTI1NjkyODk0fQ.cvK8Il2IbFqU03Q4uOhSQ9jxFkWELLACX7mJKyy_Ue0',
 });
 
-const getClient = () => createClient(activeSupabaseConfig.base_url, activeSupabaseConfig.client_key);
+const getClient = () => createClient<Database>(activeSupabaseConfig.base_url, activeSupabaseConfig.client_key);
 
 export const supabase = getClient()
 

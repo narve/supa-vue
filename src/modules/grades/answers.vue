@@ -59,7 +59,7 @@ const fetch = async () => {
   emit('startloading', 'Henter spørsmål')
   const {data: _questions, error: e2} = await supabase
       .from('question')
-      .select('*, answer(*)')
+      .select('*, answer2:answer_question_id_fkey(*)')
       .match({questionnaire_id})
       .order('name')
   if (e2) {
@@ -68,9 +68,7 @@ const fetch = async () => {
   }
 
   for (const q of _questions) {
-    // console.log('fixup non-answers: ', q.answer)
-    if (q.answer.length == 0) q.answer = [blank(q.id)]
-    // console.log('fixupED non-answers: ', q.answer)
+    if (!q.answer || q.answer.length == 0) q.answer = [blank(q.id)]
   }
   questions.value = _questions;
   debugObj.value = JSON.stringify(_questions, null, '   ')
