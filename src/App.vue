@@ -63,7 +63,7 @@ window.addEventListener('unhandledrejection', (args) => onUncaughtError(args.rea
   </div>
 
 
-  <section>
+  <section class="styled">
     <!--    <Suspense>-->
     <router-view
         @startloading="onStartLoading"
@@ -80,7 +80,6 @@ window.addEventListener('unhandledrejection', (args) => onUncaughtError(args.rea
 <style>
 
 @import "https://igoradamenko.github.io/awsm.css/css/awsm_theme_gondola.css" only screen;
-
 
 @media print {
   .screen {

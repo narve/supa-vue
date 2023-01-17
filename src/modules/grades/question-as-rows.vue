@@ -64,7 +64,7 @@ const fetchData = async () => {
 }
 
 
-const save = async (answer: AnswersRow, points: number) => {
+const save = async (answer: AnswersRow | Partial<AnswersInsert>, points: number) => {
   // console.log('save, points: ', points)
   // return
   if (answer.id) {
@@ -74,7 +74,7 @@ const save = async (answer: AnswersRow, points: number) => {
   } else {
     emit('startloading', `Registerer`)
     answer.points = points
-    getOrThrow(await supabase.from('answer').insert(answer))
+    getOrThrow(await supabase.from('answer').insert(answer as AnswersInsert))
   }
   emit('doneloading')
   await fetchData()
@@ -110,12 +110,13 @@ fetchData()
         {{ question.points }}
       </th>
       <td v-for="student of students">
-        <span v-if="debugObj">[id: {{ getAnswer(student, question).id || '(new)' }}]</span>
+        {{ void (answer = getAnswer(student, question)) }}
+        <span v-if="debugObj">[id: {{ answer.id || '(new)' }}]</span>
         <input
             type="number"
-            v-model="getAnswer(student, question).points"
+            v-model="answer.points"
             maxlength="question.points"
-            @change="save(getAnswer(student, question), $event.target.value)">
+            @change="save(answer, $event.target.value)">
       </td>
     </tr>
     </tbody>
@@ -123,8 +124,8 @@ fetchData()
     <tr>
       <th>Sum</th>
       <th>{{ maxPoints() }}</th>
-      <td v-for="c of students">
-        {{ totalPoints(c.id) }}
+      <td v-for="student of students">
+        {{ totalPoints(student.id) }}
       </td>
     </tr>
     </tfoot>
@@ -149,8 +150,10 @@ fetchData()
         {{ student.name }}
       </th>
       <td v-for="question of questions">
-        <span v-if="debugObj">[id: {{ getAnswer(student, question).id || '(new)' }}]</span>
-        <input type="number" v-model="getAnswer(student, question).points" @change="save(getAnswer(student, question))">
+        <template v-for="answer in [getAnswer(student, question)]">
+          <span v-if="debugObj">[id: {{ answer.id || '(new)' }}]</span>
+          <input type="number" v-model="answer.points" @change="save(answer, $event.target.value)">
+        </template>
       </td>
       <td>
         {{ totalPoints(student.id) }}

@@ -2,7 +2,7 @@
 
 import {getFatSelect, supabase} from "../../supa";
 import {useRouter} from "vue-router";
-import {onActivated, onMounted, ref, watch} from "vue";
+import {computed, onActivated, onMounted, ref, watch} from "vue";
 import {store} from "../../supa/store";
 import ItemEditor from "./ItemEditor.vue";
 import {cellTitle, toPluralTitle} from "./util";
@@ -36,7 +36,13 @@ const openApi = ref({} as OpenApi)
 const tableDef = ref({} as RelationRef)
 
 
-const tableName = ref('[tableName')
+// const tableName = ref('[tableName')
+const tableName = computed(() =>
+    router.currentRoute.value.params['id'] as string
+    || props.tableName as string
+)
+
+
 const tableTitle = ref('[tableTitle]' as any)
 const data = ref([] as any[]);
 
@@ -51,7 +57,8 @@ const currentItem = ref(null as any);
 const selectors = ref({} as any);
 
 const filters = router.currentRoute.value.query
-tableName.value = router.currentRoute.value.params['id'] as string
+// tableName.value = router.currentRoute.value.params['id'] as string
+// tableName.value = router.currentRoute.value.params['id'] as string
 
 const debugObject = ref(null as any)
 
@@ -60,9 +67,9 @@ console.log('query: ', filters)
 const refreshList = async () => {
   emit('startloading', 'Loading list')
 
-  tableName.value =
-      props.tableName ||
-      router.currentRoute.value.params.name as string;
+  // tableName.value =
+  //     props.tableName ||
+  //     router.currentRoute.value.params.name as string;
   console.log('fetching: ', tableName.value);
 
   // const tName: keyof Definitions = <keyof Definitions>tableName.value;
@@ -132,12 +139,12 @@ watch(
     () => refreshList());
 
 onMounted(() => {
-  console.log('Mounting: students ------------------------------ ')
+  console.log(`Mounting:  DataComponent ${tableName.value} ------------------------------ `)
   refreshList();
 })
 
 onActivated(() => {
-  console.log('Activating: students ------------------------------ ')
+  console.log(`Activating: DataComponent ${tableName.value} ------------------------------ `)
   refreshList();
 
 })
