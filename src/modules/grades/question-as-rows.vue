@@ -1,6 +1,6 @@
 <script setup lang="ts">
 
-import {ref} from 'vue';
+import {computed, ref, watch} from 'vue';
 import {supabase} from "../../supa";
 import {useRouter} from "vue-router";
 import {standardEmits} from "../../utils/standardEmits";
@@ -11,13 +11,13 @@ const debugObj = ref(undefined as any)
 const emit = defineEmits(standardEmits)
 const router = useRouter();
 
-const q = router.currentRoute.value.query.questionnaire_id
-const questionnaire_id = parseInt(q![0]!.toString())
+const q = computed(() => router.currentRoute.value.query.questionnaire_id)
+const questionnaire_id = computed(() => parseInt(q.value![0]!.toString()))
 
 function blank(student_id: StudentsRow, question_id: QuestionsRow): Partial<AnswersInsert> {
   return {
     question_id: question_id.id,
-    questionnaire_id: questionnaire_id as number,
+    questionnaire_id: questionnaire_id.value as number,
     student_id: student_id.id,
     points: undefined,
     comments: ''
@@ -50,12 +50,12 @@ const fetchData = async () => {
   emit('startloading', 'Henter spørsmål')
   questions.value = getOrThrow(await supabase.from('question')
       .select()
-      .match({questionnaire_id})
+      .match({questionnaire_id: questionnaire_id.value})
   )
   emit('startloading', 'Henter besvarelser')
   answers.value = getOrThrow(await supabase.from('answer')
       .select()
-      .match({questionnaire_id})
+      .match({questionnaire_id: questionnaire_id.value})
   )
 
   emit('doneloading')
@@ -82,6 +82,13 @@ const save = async (answer: AnswersRow | Partial<AnswersInsert>, points: number)
 
 fetchData()
 
+watch(
+    () => router.currentRoute.value.query,
+    () => {
+      console.log('The matrix component: ', router.currentRoute.value.query)
+      return fetchData();
+    });
+
 
 </script>
 
@@ -94,7 +101,7 @@ fetchData()
   <table v-if="mode">
     <thead>
     <tr>
-      <th>Spørsmål</th>
+      <th>&nbsp;</th>
       <th>Maks poeng</th>
       <th v-for="student of students">
         {{ student.name }}

@@ -1,6 +1,6 @@
 import {RouteRecordRaw} from "vue-router";
 import DataTypes from "./DataTypes.vue";
-import DataComponent from "./DataComponent.vue";
+import DataComponentPage from "./DataComponentPage.vue";
 
 const name = 'api'
 const title = 'API'
@@ -12,7 +12,7 @@ const routes: RouteRecordRaw[] = [
     },
     {
         path: '/api/:name',
-        component: DataComponent,
+        component: DataComponentPage,
     }
 ]
 export default {

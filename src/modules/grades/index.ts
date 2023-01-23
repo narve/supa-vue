@@ -13,22 +13,25 @@ const routes = <RouteRecordRaw[]>[
     {
         name: 'grades',
         path: '/grades',
+        // redirect: '/grades/questionnaires',
         component: GradeHome,
         children: [
             {
                 path: 'students',
+                name: 'students',
                 // component: Students,
                 component: DataComponent,
                 props: {
                     tableName: 'student',
                 }
             },
-            {
-                path: 'answers',
-                component: Answers,
-            },
+            // {
+            //     path: 'answers',
+            //     component: Answers,
+            // },
             {
                 path: 'questionnaires',
+                name: 'questionnaires',
                 component: DataComponent,
                 props: {
                     tableName: 'questionnaire',
@@ -36,7 +39,7 @@ const routes = <RouteRecordRaw[]>[
                         {href: `/api/question?questionnaire_id=${o.id}`, title: 'Spørsmål (API)'},
                         {href: `questions?questionnaire_id=${o.id}`, title: 'Spørsmål'},
                         {href: `report?questionnaire_id=${o.id}`, title: 'Oversikt'},
-                        {href: `questions-as-rows?questionnaire_id=${o.id}`, title: 'Tabellvisning'},
+                        {href: `questionnaire-table?questionnaire_id=${o.id}`, title: 'Tabellvisning'},
                     ]
                 }
             },
@@ -49,7 +52,7 @@ const routes = <RouteRecordRaw[]>[
                 component: Report,
             },
             {
-                path: 'questions-as-rows',
+                path: 'questionnaire-table',
                 component: QuestionAsRow,
             },
         ]

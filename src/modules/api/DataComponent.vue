@@ -1,18 +1,13 @@
 <script setup lang="ts">
 
 import {getFatSelect, supabase} from "../../supa";
-import {useRouter} from "vue-router";
-import {computed, onActivated, onMounted, ref, watch} from "vue";
+import {ref} from "vue";
 import {store} from "../../supa/store";
 import ItemEditor from "./ItemEditor.vue";
 import {cellTitle, toPluralTitle} from "./util";
 import {getOpenApi} from "../../supa/supa-openapi";
 import {OpenApi, PropertyDef, RelationRef} from "../../supa/openapi-def";
 import {standardEmits} from "../../utils/standardEmits";
-
-const emit = defineEmits(standardEmits)
-
-const router = useRouter();
 
 interface Link {
   href: string;
@@ -21,27 +16,23 @@ interface Link {
 
 interface Props {
   columns?: string;
-  tableName?: string;
-  links?: (o: any) => Link[]
+  tableName: string;
+  links?: (o: any) => Link[];
+  filters: any|null
 }
 
 const props = withDefaults(
     defineProps<Props>(),
     {
-      columns: 'a',
+      // columns: 'a',
       links: undefined, //() => []
+      filters: () => [] as any[],
     })
+
+const emit = defineEmits(standardEmits)
 
 const openApi = ref({} as OpenApi)
 const tableDef = ref({} as RelationRef)
-
-
-// const tableName = ref('[tableName')
-const tableName = computed(() =>
-    router.currentRoute.value.params['id'] as string
-    || props.tableName as string
-)
-
 
 const tableTitle = ref('[tableTitle]' as any)
 const data = ref([] as any[]);
@@ -56,21 +47,23 @@ const canEdit = ref(false);
 const currentItem = ref(null as any);
 const selectors = ref({} as any);
 
-const filters = router.currentRoute.value.query
-// tableName.value = router.currentRoute.value.params['id'] as string
-// tableName.value = router.currentRoute.value.params['id'] as string
-
 const debugObject = ref(null as any)
+const tableName = ref(props.tableName)
 
-console.log('query: ', filters)
+console.log('query: ', props.filters)
 
 const refreshList = async () => {
-  emit('startloading', 'Loading list')
+  if(!props.tableName?.length) {
+    emit('error', 'No table!')
+    return
+  }
+
+  emit('startloading', `Loading [${tableName.value}]`)
 
   // tableName.value =
   //     props.tableName ||
   //     router.currentRoute.value.params.name as string;
-  console.log('fetching: ', tableName.value);
+  console.log('fetching: ', tableName.value, props.filters);
 
   // const tName: keyof Definitions = <keyof Definitions>tableName.value;
   const tName = tableName.value;
@@ -90,7 +83,7 @@ const refreshList = async () => {
   const {data: d, error: e} = await supabase
       .from(tName)
       .select(select)
-      .match(filters)
+      .match(props.filters)
   if(e) {
     emit('error', e)
     return
@@ -133,22 +126,6 @@ const refreshList = async () => {
   emit('doneloading')
 }
 
-
-watch(
-    () => router.currentRoute.value.params,
-    () => refreshList());
-
-onMounted(() => {
-  console.log(`Mounting:  DataComponent ${tableName.value} ------------------------------ `)
-  refreshList();
-})
-
-onActivated(() => {
-  console.log(`Activating: DataComponent ${tableName.value} ------------------------------ `)
-  refreshList();
-
-})
-
 const cellToString = (row: any, column: any) => {
   const colName = (column.isFk && !!column.fk.fk_name) ? column.fk.fk_name : column.name;
 
@@ -167,7 +144,7 @@ const cellToString = (row: any, column: any) => {
   }
 };
 
-const blank = () => ({})
+const blank = () => ({...props.filters})
 
 const edit = async (item: any) => {
   // console.log('Now editing: ', item);
@@ -208,10 +185,13 @@ const remove = async () => {
 const getLinks = (item: any) => props.links ? props.links(item) : []
 
 const startNew = () => {
-  currentItem.value = {...filters}
+  currentItem.value = blank()
 }
 
+refreshList()
+
 </script>
+
 <template>
 
   <!--  <p>Selectors: {{selectors}}</p>-->
@@ -228,9 +208,6 @@ const startNew = () => {
 
   <div>
     <h2>{{ tableTitle }}</h2>
-    <!--    <p>OpenApi: {{ openApi }}</p>-->
-<!--    <p>Table def: {{ tableDef }}</p>-->
-<!--    <p>Table columns: {{ tableColumns }}</p>-->
     <p v-if="debugObject">Debug: {{ debugObject }}</p>
 
     <div>
@@ -248,15 +225,13 @@ const startNew = () => {
       </tr>
       </thead>
       <tbody>
-      <!--        <tr v-for="row of data">-->
-      <!--          <td colspan="99">{{ row }}</td>-->
-      <!--        </tr>-->
       <tr v-for="row of data">
         <td v-for="column of tableColumns">
           {{ cellToString(row, column) }}
         </td>
         <td v-if="props.links">
-          <a v-for="l of getLinks(row)" :href="l.href">{{ l.title }}</a>
+<!--          <a v-for="l of getLinks(row)" :href="l.href">A {{ l.title }}</a>-->
+          <router-link v-for="l of getLinks(row)" :to="l.href">{{ l.title }}</router-link>
         </td>
         <td>
           <button v-if="canEdit" @click.prevent="edit(row)"><i class="material-icons">edit</i></button>
